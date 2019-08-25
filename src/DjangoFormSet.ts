@@ -244,10 +244,12 @@ class DjangoFormset {
     this.update();
   }
 
+  getDeleteId(index) {
+    return `id_${this.prefix}-${index}-DELETE`;
+  }
+
   getDeletingElement(index) {
-    return document.getElementById(
-      `id_${this.prefix}-${index}-DELETE`
-    ) as HTMLInputElement;
+    return document.getElementById(this.getDeleteId(index)) as HTMLInputElement;
   }
 
   getDefaultOrderElement(): HTMLElement {
@@ -307,8 +309,8 @@ class DjangoFormset {
   onMovingAfter(element: HTMLElement) {
     var form = element.closest(this.selector);
     var clonedForm = form.cloneNode(true) as HTMLElement;
-    var forms = this.getForms();
-    var referenceElement = forms[this.getIndex(forms, form) + 1];
+    var visibleForms = this.getVisibleForms();
+    var referenceElement = visibleForms[this.getIndex(visibleForms, form) + 1];
     form.remove();
     this.insertAfter(this.getSetupOrderElement(clonedForm), referenceElement);
     this.update();
@@ -317,8 +319,8 @@ class DjangoFormset {
   onMovingBefore(element: HTMLElement) {
     var form = element.closest(this.selector);
     var clonedForm = form.cloneNode(true) as HTMLElement;
-    var forms = this.getForms();
-    var referenceElement = forms[this.getIndex(forms, form) - 1];
+    var visibleForms = this.getVisibleForms();
+    var referenceElement = visibleForms[this.getIndex(visibleForms, form) - 1];
     form.remove();
     this.insertBefore(this.getSetupOrderElement(clonedForm), referenceElement);
     this.update();
@@ -339,6 +341,15 @@ class DjangoFormset {
     for (let index = 0; index < forms.length; index++) {
       const element = forms[index];
       this.setupElement(element, index + 1);
+
+      if (this.canDelete) {
+        this.hideDeleteElement(index);
+      }
+
+      if (this.canOrder) {
+        this.hideOrderElement(index);
+        this.setOrderValueByIndex(index.toString(), index);
+      }
     }
   }
 
@@ -347,6 +358,14 @@ class DjangoFormset {
     for (let index = 0; index < forms.length; index++) {
       const element = forms[index];
       this.updateElement(element, index + 1);
+    }
+
+    if (this.canDelete) {
+      this.updateVisibleFormsDelete();
+    }
+
+    if (this.canOrder) {
+      this.updateVisibleFormsOrder();
     }
   }
 
@@ -411,6 +430,28 @@ class DjangoFormset {
     }
   }
 
+  getFormId(formElement: HTMLElement): string {
+    return this.recursiveFindFirstId(formElement);
+  }
+
+  recursiveFindFirstId(element: HTMLElement): string {
+    var children = element.children;
+    for (let i = 0; i < children.length; i++) {
+      const element = children[i] as HTMLElement;
+      var id = element.getAttribute("id");
+      var idPattern = new RegExp(`id_${this.prefix}-\\d+-.+`);
+      if (idPattern.exec(id)) {
+        return id.split("-")[1];
+      } else {
+        var result = this.recursiveFindFirstId(element);
+        if (result) {
+          return result;
+        }
+      }
+    }
+    return null;
+  }
+
   setupElement(formElement: HTMLElement, index: number): void {
     this.recursiveAdaptChidrenToIndex(formElement, index - 1);
 
@@ -443,6 +484,33 @@ class DjangoFormset {
     }
   }
 
+  hideOrderElement(index) {
+    var input = document.querySelector(
+      `#${this.getOrderId(index)}`
+    ) as HTMLElement;
+    this.setVisibility(input, false);
+
+    var label = document.querySelector(
+      `label[for="${this.getOrderId(index)}"]`
+    ) as HTMLElement;
+    this.setVisibility(label, false);
+  }
+  getOrderId(index: any) {
+    return `id_${this.prefix}-${index}-ORDER`;
+  }
+
+  hideDeleteElement(index) {
+    var input = document.querySelector(
+      `#${this.getDeleteId(index)}`
+    ) as HTMLElement;
+    this.setVisibility(input, false);
+
+    var label = document.querySelector(
+      `label[for="${this.getDeleteId(index)}"]`
+    ) as HTMLElement;
+    this.setVisibility(label, false);
+  }
+
   setVisibility(htmlElement: HTMLElement, isVisible: boolean): void {
     if (isVisible) {
       htmlElement.style.display = "block";
@@ -462,6 +530,30 @@ class DjangoFormset {
     this.setVisibility(addWrapper, isVisible);
   }
 
+  updateVisibleFormsDelete() {
+    var visibleForms = this.getVisibleForms();
+    for (let index = 0; index < visibleForms.length; index++) {
+      var form = visibleForms[index];
+      var id = this.getFormId(form);
+      this.hideDeleteElement(index);
+    }
+  }
+
+  updateVisibleFormsOrder() {
+    var visibleForms = this.getVisibleForms();
+    for (let index = 0; index < visibleForms.length; index++) {
+      var form = visibleForms[index];
+      var id = this.getFormId(form);
+      this.setOrderValueByIndex(id, index);
+      this.hideOrderElement(index);
+    }
+  }
+
+  setOrderValueByIndex(id: string, index: number) {
+    var order = document.getElementById(`id_${this.prefix}-${id}-ORDER`);
+    order.setAttribute("value", index.toString());
+  }
+
   updateDeleteElement(formElement: HTMLElement, index: number): void {
     var deleteWrapper = formElement.querySelector(
       this.deleteElementWrapperSelector
@@ -479,18 +571,18 @@ class DjangoFormset {
       this.orderElementWrapperSelector
     ) as HTMLElement;
 
+    var visibleForms = this.getVisibleForms();
+
     var beforeOrderElement = orderWrapper.querySelector(
       this.orderElementBeforeSelector
     ) as HTMLElement;
-    var isBeforeVisible = index != 1;
+    var isBeforeVisible = visibleForms[0] != formElement;
     this.setVisibility(beforeOrderElement, isBeforeVisible);
-
-    var numberOfTotalVisibleForms = this.getNumberOfVisibleForms();
 
     var afterOrderElement = orderWrapper.querySelector(
       this.orderElementAfterSelector
     ) as HTMLElement;
-    var isAfterVisible = index != numberOfTotalVisibleForms;
+    var isAfterVisible = visibleForms[visibleForms.length - 1] != formElement;
     this.setVisibility(afterOrderElement, isAfterVisible);
   }
 }
