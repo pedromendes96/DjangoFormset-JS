@@ -128,6 +128,18 @@ class DjangoFormset {
     return this.getIntValueMethodFormat(this.totalFormsElement);
   }
 
+  getNumberOfVisibleForms(): number {
+    var forms = this.getForms();
+    var numberOfVisibleForms = 0;
+    for (let index = 0; index < forms.length; index++) {
+      const element = forms[index];
+      if (element.offsetWidth > 0 && element.offsetHeight > 0) {
+        numberOfVisibleForms += 1;
+      }
+    }
+    return numberOfVisibleForms;
+  }
+
   getNumberOfMinForms(): number {
     return this.getIntValueMethodFormat(this.minFormsElement);
   }
@@ -157,6 +169,18 @@ class DjangoFormset {
 
   getForms(): NodeListOf<HTMLElement> {
     return document.querySelectorAll(this.selector);
+  }
+
+  getVisibleForms(): Array<HTMLElement> {
+    var forms = this.getForms();
+    var visibleForms = [];
+    for (let index = 0; index < forms.length; index++) {
+      const element = forms[index];
+      if (element.offsetWidth > 0 && element.offsetHeight > 0) {
+        visibleForms.push(element);
+      }
+    }
+    return visibleForms;
   }
 
   cleanForm(form: HTMLElement): HTMLElement {
@@ -246,8 +270,9 @@ class DjangoFormset {
     return wrapper;
   }
 
-  getSetupOrderElement(): HTMLElement {
-    var clonedElement = this.orderElement.cloneNode(true) as HTMLElement;
+  getSetupOrderElement(orderElement: HTMLElement = null): HTMLElement {
+    var clonedElement =
+      orderElement || (this.orderElement.cloneNode(true) as HTMLElement);
     var beforeElement = clonedElement.querySelector(
       this.orderElementBeforeSelector
     );
@@ -275,13 +300,18 @@ class DjangoFormset {
     );
   }
 
+  insertBefore(newElement: HTMLElement, referenceElement: HTMLElement) {
+    referenceElement.parentNode.insertBefore(newElement, referenceElement);
+  }
+
   onMovingAfter(element: HTMLElement) {
     var form = element.closest(this.selector);
     var clonedForm = form.cloneNode(true) as HTMLElement;
     var forms = this.getForms();
     var referenceElement = forms[this.getIndex(forms, form) + 1];
     form.remove();
-    this.insertAfter(clonedForm, referenceElement);
+    this.insertAfter(this.getSetupOrderElement(clonedForm), referenceElement);
+    this.update();
   }
 
   onMovingBefore(element: HTMLElement) {
@@ -290,7 +320,8 @@ class DjangoFormset {
     var forms = this.getForms();
     var referenceElement = forms[this.getIndex(forms, form) - 1];
     form.remove();
-    this.insertAfter(clonedForm, referenceElement);
+    this.insertBefore(this.getSetupOrderElement(clonedForm), referenceElement);
+    this.update();
   }
 
   getIndex(elementList, elementReference) {
@@ -424,7 +455,10 @@ class DjangoFormset {
     var addWrapper = formElement.querySelector(
       this.addElementWrapperSelector
     ) as HTMLElement;
-    var isVisible = index == this.getNumberOfTotalForms();
+    var canAdd = this.getNumberOfMaxForms() > this.getNumberOfVisibleForms();
+    var visibleForms = this.getVisibleForms();
+    var isVisible =
+      canAdd && visibleForms[visibleForms.length - 1] == formElement;
     this.setVisibility(addWrapper, isVisible);
   }
 
@@ -434,9 +468,9 @@ class DjangoFormset {
     ) as HTMLElement;
 
     var numberOfMinForms = this.getNumberOfMinForms();
-    var numberOfTotalForms = this.getNumberOfTotalForms();
+    var numberOfTotalVisibleForms = this.getNumberOfVisibleForms();
 
-    var isVisible = numberOfTotalForms > numberOfMinForms;
+    var isVisible = numberOfTotalVisibleForms > numberOfMinForms;
     this.setVisibility(deleteWrapper, isVisible);
   }
 
@@ -451,12 +485,12 @@ class DjangoFormset {
     var isBeforeVisible = index != 1;
     this.setVisibility(beforeOrderElement, isBeforeVisible);
 
-    var numberOfTotalForms = this.getNumberOfTotalForms();
+    var numberOfTotalVisibleForms = this.getNumberOfVisibleForms();
 
     var afterOrderElement = orderWrapper.querySelector(
       this.orderElementAfterSelector
     ) as HTMLElement;
-    var isAfterVisible = index != numberOfTotalForms;
+    var isAfterVisible = index != numberOfTotalVisibleForms;
     this.setVisibility(afterOrderElement, isAfterVisible);
   }
 }

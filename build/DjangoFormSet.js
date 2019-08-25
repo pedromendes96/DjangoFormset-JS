@@ -55,6 +55,17 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.getNumberOfTotalForms = function () {
         return this.getIntValueMethodFormat(this.totalFormsElement);
     };
+    DjangoFormset.prototype.getNumberOfVisibleForms = function () {
+        var forms = this.getForms();
+        var numberOfVisibleForms = 0;
+        for (var index = 0; index < forms.length; index++) {
+            var element = forms[index];
+            if (element.offsetWidth > 0 && element.offsetHeight > 0) {
+                numberOfVisibleForms += 1;
+            }
+        }
+        return numberOfVisibleForms;
+    };
     DjangoFormset.prototype.getNumberOfMinForms = function () {
         return this.getIntValueMethodFormat(this.minFormsElement);
     };
@@ -75,6 +86,17 @@ var DjangoFormset = /** @class */ (function () {
     };
     DjangoFormset.prototype.getForms = function () {
         return document.querySelectorAll(this.selector);
+    };
+    DjangoFormset.prototype.getVisibleForms = function () {
+        var forms = this.getForms();
+        var visibleForms = [];
+        for (var index = 0; index < forms.length; index++) {
+            var element = forms[index];
+            if (element.offsetWidth > 0 && element.offsetHeight > 0) {
+                visibleForms.push(element);
+            }
+        }
+        return visibleForms;
     };
     DjangoFormset.prototype.cleanForm = function (form) {
         var formTemplate = form.cloneNode(true);
@@ -149,9 +171,10 @@ var DjangoFormset = /** @class */ (function () {
         wrapper.append(afterButton);
         return wrapper;
     };
-    DjangoFormset.prototype.getSetupOrderElement = function () {
+    DjangoFormset.prototype.getSetupOrderElement = function (orderElement) {
         var _this = this;
-        var clonedElement = this.orderElement.cloneNode(true);
+        if (orderElement === void 0) { orderElement = null; }
+        var clonedElement = orderElement || this.orderElement.cloneNode(true);
         var beforeElement = clonedElement.querySelector(this.orderElementBeforeSelector);
         beforeElement.addEventListener("click", function () {
             clonedElement.dispatchEvent(_this.beforeOrderEvent);
@@ -169,13 +192,17 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.insertAfter = function (newElement, referenceElement) {
         referenceElement.parentNode.insertBefore(newElement, referenceElement.nextSibling);
     };
+    DjangoFormset.prototype.insertBefore = function (newElement, referenceElement) {
+        referenceElement.parentNode.insertBefore(newElement, referenceElement);
+    };
     DjangoFormset.prototype.onMovingAfter = function (element) {
         var form = element.closest(this.selector);
         var clonedForm = form.cloneNode(true);
         var forms = this.getForms();
         var referenceElement = forms[this.getIndex(forms, form) + 1];
         form.remove();
-        this.insertAfter(clonedForm, referenceElement);
+        this.insertAfter(this.getSetupOrderElement(clonedForm), referenceElement);
+        this.update();
     };
     DjangoFormset.prototype.onMovingBefore = function (element) {
         var form = element.closest(this.selector);
@@ -183,7 +210,8 @@ var DjangoFormset = /** @class */ (function () {
         var forms = this.getForms();
         var referenceElement = forms[this.getIndex(forms, form) - 1];
         form.remove();
-        this.insertAfter(clonedForm, referenceElement);
+        this.insertBefore(this.getSetupOrderElement(clonedForm), referenceElement);
+        this.update();
     };
     DjangoFormset.prototype.getIndex = function (elementList, elementReference) {
         for (var index = 0; index < elementList.length; index++) {
@@ -286,14 +314,16 @@ var DjangoFormset = /** @class */ (function () {
     };
     DjangoFormset.prototype.updateAddElement = function (formElement, index) {
         var addWrapper = formElement.querySelector(this.addElementWrapperSelector);
-        var isVisible = index == this.getNumberOfTotalForms();
+        var canAdd = this.getNumberOfMaxForms() > this.getNumberOfVisibleForms();
+        var visibleForms = this.getVisibleForms();
+        var isVisible = canAdd && visibleForms[visibleForms.length - 1] == formElement;
         this.setVisibility(addWrapper, isVisible);
     };
     DjangoFormset.prototype.updateDeleteElement = function (formElement, index) {
         var deleteWrapper = formElement.querySelector(this.deleteElementWrapperSelector);
         var numberOfMinForms = this.getNumberOfMinForms();
-        var numberOfTotalForms = this.getNumberOfTotalForms();
-        var isVisible = numberOfTotalForms > numberOfMinForms;
+        var numberOfTotalVisibleForms = this.getNumberOfVisibleForms();
+        var isVisible = numberOfTotalVisibleForms > numberOfMinForms;
         this.setVisibility(deleteWrapper, isVisible);
     };
     DjangoFormset.prototype.updateOrderElement = function (formElement, index) {
@@ -301,9 +331,9 @@ var DjangoFormset = /** @class */ (function () {
         var beforeOrderElement = orderWrapper.querySelector(this.orderElementBeforeSelector);
         var isBeforeVisible = index != 1;
         this.setVisibility(beforeOrderElement, isBeforeVisible);
-        var numberOfTotalForms = this.getNumberOfTotalForms();
+        var numberOfTotalVisibleForms = this.getNumberOfVisibleForms();
         var afterOrderElement = orderWrapper.querySelector(this.orderElementAfterSelector);
-        var isAfterVisible = index != numberOfTotalForms;
+        var isAfterVisible = index != numberOfTotalVisibleForms;
         this.setVisibility(afterOrderElement, isAfterVisible);
     };
     return DjangoFormset;
