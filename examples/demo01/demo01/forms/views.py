@@ -6,30 +6,32 @@ from .forms import DemoForm
 # Create your views here.
 
 
-class FormSetCreateDemoView(View):
+def normalize_params(context):
+    for key in context:
+        if context[key].lower() == "true":
+            context[key] = True
+        elif context[key].lower() == "false":
+            context[key] = False
+        else:
+            try:
+                context[key] = int(context[key])
+                continue
+            except expression as identifier:
+                pass
+
+            try:
+                context[key] = float(context[key])
+                continue
+            except expression as identifier:
+                pass
+
+
+class FormSetTemplateView(View):
     def get(self, request, *args, **kwargs):
-        DemoFormSet = formset_factory(DemoForm)
-        formset = DemoFormSet(prefix="demo")
-        return render(request, "forms/demo01.html", locals())
-
-
-class FormSetCreateOrderDemoView(View):
-    def get(self, request, *args, **kwargs):
-        DemoFormSet = formset_factory(DemoForm, can_order=True)
-        formset = DemoFormSet(prefix="demo")
-        return render(request, "forms/demo01.html", locals())
-
-
-class FormSetCreateDeleteDemoView(View):
-    def get(self, request, *args, **kwargs):
-        DemoFormSet = formset_factory(DemoForm, can_delete=True)
-        formset = DemoFormSet(prefix="demo")
-        return render(request, "forms/demo01.html", locals())
-
-
-class FormSetCreateOrderDeleteDemoView(View):
-    def get(self, request, *args, **kwargs):
-        DemoFormSet = formset_factory(
-            DemoForm, can_delete=True, can_order=True)
-        formset = DemoFormSet(prefix="demo")
+        context = request.GET.dict()
+        prefix = context.pop("prefix", "demo")
+        auto_id = context.pop("auto_id", "id_%s")
+        normalize_params(context)
+        DemoFormSet = formset_factory(DemoForm, **context)
+        formset = DemoFormSet(prefix=prefix, auto_id=auto_id)
         return render(request, "forms/demo01.html", locals())

@@ -33,8 +33,15 @@
             prefix : "{{formset.prefix}}",
             canDelete: {{formset.can_delete|yesno:"true,false"}},
             canOrder: {{formset.can_order|yesno:"true,false"}},
+            autoId : "{{formset.auto_id}}"
         });
         formset.setup();
+        formset.onBeforeAdd((event) => {
+            console.log("before Log");
+        });
+        formset.onAfterAdd((event) => {
+            console.log("after Log");
+        });
     </script>
 </body>
 </html>
