@@ -1,4 +1,4 @@
-class Formset {
+class DjangoFormset {
   private selector: string;
   private prefix: string;
 
@@ -43,27 +43,45 @@ class Formset {
 
   constructor(
     selector: string,
-    prefix: string = "",
+    {
+      prefix = "form",
+      addElement = null,
+      addElementDefaultText = "Add",
+      addElementWrapperSelector = ".formset-wrapper-add",
 
-    addElement: HTMLElement = null,
-    addElementDefaultText: string = "Add",
-    addElementWrapperSelector: string = "formset-wrapper-add",
+      canDelete = false,
+      deleteElement = null,
+      deleteElementDefaultText = "Delete",
+      deleteElementWrapperSelector = ".formset-wrapper-delete",
 
-    canDelete: boolean = false,
-    deleteElement: HTMLElement = null,
-    deleteElementDefaultText: string = "Delete",
-    deleteElementWrapperSelector: string = "formset-wrapper-delete",
-
-    canOrder: boolean = false,
-    orderElement: HTMLElement = null,
-    orderElementBeforeSelector: string = "formset-order-before",
-    orderElementBeforeDefaultText: string = "Before",
-    orderElementAfterSelector: string = "formset-order-after",
-    orderElementAfterDefaultText: string = "After",
-    orderElementWrapperSelector: string = "formset-wrapper-order"
+      canOrder = false,
+      orderElement = null,
+      orderElementBeforeSelector = ".formset-order-before",
+      orderElementBeforeDefaultText = "Before",
+      orderElementAfterSelector = ".formset-order-after",
+      orderElementAfterDefaultText = "After",
+      orderElementWrapperSelector = ".formset-wrapper-order"
+    } = {}
   ) {
     this.selector = selector;
     this.prefix = prefix;
+    this.addElementDefaultText = addElementDefaultText;
+    this.addElementWrapperSelector = addElementWrapperSelector;
+
+    this.canDelete = canDelete;
+    this.deleteElementDefaultText = deleteElementDefaultText;
+    this.deleteElementWrapperSelector = deleteElementWrapperSelector;
+
+    this.canOrder = canOrder;
+    this.orderElementBeforeSelector = orderElementBeforeSelector;
+    this.orderElementBeforeDefaultText = orderElementBeforeDefaultText;
+    this.orderElementAfterSelector = orderElementAfterSelector;
+    this.orderElementAfterDefaultText = orderElementAfterDefaultText;
+    this.orderElementWrapperSelector = orderElementWrapperSelector;
+
+    this.addElement = addElement || this.getDefaultAddElement();
+    this.deleteElement = deleteElement || this.getDefaultDeleteElement();
+    this.orderElement = orderElement || this.getDefaultOrderElement();
 
     this.totalFormsElement = document.getElementById(
       `id_${this.prefix}-TOTAL_FORMS`
@@ -74,23 +92,6 @@ class Formset {
     this.maxFormsElement = document.getElementById(
       `id_${this.prefix}-MAX_NUM_FORMS`
     );
-
-    this.addElement = addElement || this.getDefaultAddElement();
-    this.addElementDefaultText = addElementDefaultText;
-    this.addElementWrapperSelector = addElementWrapperSelector;
-
-    this.canDelete = canDelete;
-    this.deleteElement = deleteElement || this.getDefaultDeleteElement();
-    this.deleteElementDefaultText = deleteElementDefaultText;
-    this.deleteElementWrapperSelector = deleteElementWrapperSelector;
-
-    this.canOrder = canOrder;
-    this.orderElement = orderElement;
-    this.orderElementBeforeSelector = orderElementBeforeSelector;
-    this.orderElementBeforeDefaultText = orderElementBeforeDefaultText;
-    this.orderElementAfterSelector = orderElementAfterSelector;
-    this.orderElementAfterDefaultText = orderElementAfterDefaultText;
-    this.orderElementWrapperSelector = orderElementWrapperSelector;
 
     var forms = this.getForms();
     if (forms.length) {
@@ -160,7 +161,7 @@ class Formset {
 
   cleanForm(form: HTMLElement): HTMLElement {
     var formTemplate = form.cloneNode(true) as HTMLElement;
-    var inputs = formTemplate.querySelectorAll(":input");
+    var inputs = formTemplate.querySelectorAll("input");
     for (let index = 0; index < inputs.length; index++) {
       const element = inputs[index];
       element.setAttribute("value", "");
@@ -211,10 +212,18 @@ class Formset {
   }
 
   onDeletingElement(element: HTMLElement): void {
-    var form = element.closest(this.selector);
-    form.remove();
-    this.decrementTotalForms();
+    var form = element.closest(this.selector) as HTMLElement;
+    this.setVisibility(form, false);
+    var index = this.getIndex(this.getForms(), form);
+    var deletingElementCheckBox = this.getDeletingElement(index);
+    deletingElementCheckBox.checked = true;
     this.update();
+  }
+
+  getDeletingElement(index) {
+    return document.getElementById(
+      `id_${this.prefix}-${index}-DELETE`
+    ) as HTMLInputElement;
   }
 
   getDefaultOrderElement(): HTMLElement {
@@ -222,11 +231,15 @@ class Formset {
 
     var beforeButton = document.createElement("button");
     beforeButton.setAttribute("type", "button");
+    beforeButton.classList.add(
+      this.orderElementBeforeSelector.replace(".", "")
+    );
     beforeButton.textContent = this.orderElementBeforeDefaultText;
     wrapper.append(beforeButton);
 
     var afterButton = document.createElement("button");
     afterButton.setAttribute("type", "button");
+    afterButton.classList.add(this.orderElementAfterSelector.replace(".", ""));
     afterButton.textContent = this.orderElementAfterDefaultText;
     wrapper.append(afterButton);
 
@@ -292,21 +305,23 @@ class Formset {
 
   setup(): void {
     var forms = this.getForms();
-    for (let index = 1; index <= forms.length; index++) {
+    for (let index = 0; index < forms.length; index++) {
       const element = forms[index];
-      this.setupElement(element, index);
+      this.setupElement(element, index + 1);
     }
   }
 
   update(): void {
     var forms = this.getForms();
-    for (let index = 1; index <= forms.length; index++) {
+    for (let index = 0; index < forms.length; index++) {
       const element = forms[index];
-      this.updateElement(element, index);
+      this.updateElement(element, index + 1);
     }
   }
 
   updateElement(formElement: HTMLElement, index: number): void {
+    this.recursiveAdaptChidrenToIndex(formElement, index - 1);
+
     this.updateAddElement(formElement, index);
     if (this.canDelete) {
       this.updateDeleteElement(formElement, index);
@@ -316,7 +331,58 @@ class Formset {
     }
   }
 
+  recursiveAdaptChidrenToIndex(element: HTMLElement, index: number): void {
+    var children = element.children;
+    for (let i = 0; i < children.length; i++) {
+      const element = children[i] as HTMLElement;
+      this.changeElementAttributesToIndex(element, index);
+      this.recursiveAdaptChidrenToIndex(element, index);
+    }
+  }
+
+  changeElementAttributesToIndex(element: HTMLElement, index: number): void {
+    var name = element.getAttribute("name");
+    if (name) {
+      element.setAttribute("name", this.getReplacedNamePattern(name, index));
+    }
+
+    var forAttribute = element.getAttribute("for");
+    if (forAttribute) {
+      element.setAttribute(
+        "for",
+        this.getReplacedIdPattern(forAttribute, index)
+      );
+    }
+
+    var id = element.getAttribute("id");
+    if (id) {
+      element.setAttribute("id", this.getReplacedIdPattern(id, index));
+    }
+  }
+
+  getReplacedNamePattern(name: string, index: number): string {
+    var namePattern = new RegExp(`${this.prefix}-\\d+-.+`);
+    if (namePattern.exec(name)) {
+      var splitName = name.split("-");
+      return `${splitName[0]}-${index}-${splitName[2]}`;
+    } else {
+      return name;
+    }
+  }
+
+  getReplacedIdPattern(id, index): string {
+    var idPattern = new RegExp(`id_${this.prefix}-\\d+-.+`);
+    if (idPattern.exec(id)) {
+      var splitId = id.split("-");
+      return `id_${splitId[0].replace("id_", "")}-${index}-${splitId[2]}`;
+    } else {
+      return id;
+    }
+  }
+
   setupElement(formElement: HTMLElement, index: number): void {
+    this.recursiveAdaptChidrenToIndex(formElement, index - 1);
+
     var addElement = this.getSetupAddElement();
     this.setupElementInFormBySelector(
       formElement,
@@ -370,8 +436,7 @@ class Formset {
     var numberOfMinForms = this.getNumberOfMinForms();
     var numberOfTotalForms = this.getNumberOfTotalForms();
 
-    var isVisible =
-      index <= numberOfMinForms && numberOfTotalForms <= numberOfMinForms;
+    var isVisible = numberOfTotalForms > numberOfMinForms;
     this.setVisibility(deleteWrapper, isVisible);
   }
 
@@ -391,7 +456,7 @@ class Formset {
     var afterOrderElement = orderWrapper.querySelector(
       this.orderElementAfterSelector
     ) as HTMLElement;
-    var isAfterVisible = index == numberOfTotalForms;
+    var isAfterVisible = index != numberOfTotalForms;
     this.setVisibility(afterOrderElement, isAfterVisible);
   }
 }
