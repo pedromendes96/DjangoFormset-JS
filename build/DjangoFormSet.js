@@ -45,7 +45,6 @@ var DjangoFormset = /** @class */ (function () {
         var forms = this.getForms();
         if (forms.length) {
             var formReference = forms[0];
-            this.formsWrapper = formReference.parentElement;
             this.formTemplate = this.cleanForm(formReference);
         }
         else {
@@ -92,7 +91,12 @@ var DjangoFormset = /** @class */ (function () {
         return this.autoId.replace("%s", str);
     };
     DjangoFormset.prototype.getIntValueMethodFormat = function (element) {
-        return parseInt(element.getAttribute("value"));
+        try {
+            return parseInt(element.getAttribute("value"));
+        }
+        catch (error) {
+            return 0;
+        }
     };
     DjangoFormset.prototype.setIntValueMethodFormat = function (element, value) {
         element.setAttribute("value", value.toString());
@@ -122,12 +126,12 @@ var DjangoFormset = /** @class */ (function () {
         elementWrapper.append(element);
     };
     DjangoFormset.prototype.decrementTotalForms = function () {
-        var value = parseInt(this.totalFormsElement.getAttribute("value"));
-        this.totalFormsElement.setAttribute("value", (value - 1).toString());
+        var totalNumberOfForms = this.getNumberOfTotalForms();
+        this.totalFormsElement.setAttribute("value", (totalNumberOfForms - 1).toString());
     };
     DjangoFormset.prototype.incrementTotalForms = function () {
-        var value = parseInt(this.totalFormsElement.getAttribute("value"));
-        this.totalFormsElement.setAttribute("value", (value + 1).toString());
+        var totalNumberOfForms = this.getNumberOfTotalForms();
+        this.totalFormsElement.setAttribute("value", (totalNumberOfForms + 1).toString());
     };
     DjangoFormset.prototype.getForms = function () {
         return document.querySelectorAll(this.selector);
@@ -175,9 +179,12 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.onAddingElement = function (element) {
         var newElement = this.formTemplate.cloneNode(true);
         this.setupElement(newElement, this.getNumberOfTotalForms() + 1);
-        this.formsWrapper.append(newElement);
         this.incrementTotalForms();
         this.update();
+    };
+    DjangoFormset.prototype.insertNewElement = function (newElement) {
+        var forms = this.getForms();
+        this.insertAfter(newElement, forms[forms.length - 1]);
     };
     DjangoFormset.prototype.getDefaultDeleteElement = function () {
         var deleteButton = document.createElement("button");
@@ -405,18 +412,26 @@ var DjangoFormset = /** @class */ (function () {
     };
     DjangoFormset.prototype.hideOrderElement = function (index) {
         var input = document.querySelector("#" + this.getOrderId(index));
-        this.setVisibility(input, false);
+        if (input) {
+            this.setVisibility(input, false);
+        }
         var label = document.querySelector("label[for='" + this.getOrderId(index) + "']");
-        this.setVisibility(label, false);
+        if (label) {
+            this.setVisibility(label, false);
+        }
     };
     DjangoFormset.prototype.getOrderId = function (index) {
         return this.getIdSignature(this.prefix + "-" + index + "-ORDER");
     };
     DjangoFormset.prototype.hideDeleteElement = function (index) {
         var input = document.querySelector("#" + this.getDeleteId(index));
-        this.setVisibility(input, false);
+        if (input) {
+            this.setVisibility(input, false);
+        }
         var label = document.querySelector("label[for='" + this.getDeleteId(index) + "']");
-        this.setVisibility(label, false);
+        if (label) {
+            this.setVisibility(label, false);
+        }
     };
     DjangoFormset.prototype.setVisibility = function (htmlElement, isVisible) {
         if (isVisible) {

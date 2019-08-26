@@ -2,10 +2,10 @@ type Handler<E> = (event: E) => void;
 
 class EventDispatcher<E> {
   private handlers: Handler<E>[] = [];
-  fire(event: E) {
+  fire(event: E): void {
     for (let h of this.handlers) h(event);
   }
-  register(handler: Handler<E>) {
+  register(handler: Handler<E>): void {
     this.handlers.push(handler);
   }
 }
@@ -56,7 +56,6 @@ class DjangoFormset {
   private orderElementAfterDefaultText: string;
   private orderElementWrapperSelector: string;
 
-  private formsWrapper: HTMLElement;
   private formTemplate: HTMLElement;
 
   private beforeAddDispatcher = new EventDispatcher<BeforeAddEvent>();
@@ -132,67 +131,70 @@ class DjangoFormset {
     var forms = this.getForms();
     if (forms.length) {
       var formReference = forms[0];
-      this.formsWrapper = formReference.parentElement;
       this.formTemplate = this.cleanForm(formReference);
     } else {
       throw "Must have atleast one form to create a template!";
     }
   }
 
-  public onBeforeAdd(handler: Handler<BeforeAddEvent>) {
+  public onBeforeAdd(handler: Handler<BeforeAddEvent>): void {
     this.beforeAddDispatcher.register(handler);
   }
 
-  private fireBeforeAdd(event: BeforeAddEvent) {
+  private fireBeforeAdd(event: BeforeAddEvent): void {
     this.beforeAddDispatcher.fire(event);
   }
 
-  public onAfterAdd(handler: Handler<AfterAddEvent>) {
+  public onAfterAdd(handler: Handler<AfterAddEvent>): void {
     this.afterAddDispatcher.register(handler);
   }
 
-  private fireAfterAdd(event: AfterAddEvent) {
+  private fireAfterAdd(event: AfterAddEvent): void {
     this.afterAddDispatcher.fire(event);
   }
 
-  public onBeforeDelete(handler: Handler<BeforeDeleteEvent>) {
+  public onBeforeDelete(handler: Handler<BeforeDeleteEvent>): void {
     this.beforeDeleteDispatcher.register(handler);
   }
 
-  private fireBeforeDelete(event: BeforeDeleteEvent) {
+  private fireBeforeDelete(event: BeforeDeleteEvent): void {
     this.beforeDeleteDispatcher.fire(event);
   }
 
-  public onAfterDelete(handler: Handler<AfterDeleteEvent>) {
+  public onAfterDelete(handler: Handler<AfterDeleteEvent>): void {
     this.afterDeleteDispatcher.register(handler);
   }
 
-  private fireAfterDelete(event: AfterDeleteEvent) {
+  private fireAfterDelete(event: AfterDeleteEvent): void {
     this.afterDeleteDispatcher.fire(event);
   }
 
-  public onBeforeOrder(handler: Handler<BeforeOrderEvent>) {
+  public onBeforeOrder(handler: Handler<BeforeOrderEvent>): void {
     this.beforeOrderDispatcher.register(handler);
   }
 
-  private fireBeforeOrder(event: BeforeOrderEvent) {
+  private fireBeforeOrder(event: BeforeOrderEvent): void {
     this.beforeOrderDispatcher.fire(event);
   }
 
-  public onAfterOrder(handler: Handler<AfterOrderEvent>) {
+  public onAfterOrder(handler: Handler<AfterOrderEvent>): void {
     this.afterOrderDispatcher.register(handler);
   }
 
-  private fireAfterOrder(event: AfterOrderEvent) {
+  private fireAfterOrder(event: AfterOrderEvent): void {
     this.afterOrderDispatcher.fire(event);
   }
 
-  getIdSignature(str: string) {
+  getIdSignature(str: string): string {
     return this.autoId.replace("%s", str);
   }
 
   getIntValueMethodFormat(element: HTMLElement): number {
-    return parseInt(element.getAttribute("value"));
+    try {
+      return parseInt(element.getAttribute("value"));
+    } catch (error) {
+      return 0;
+    }
   }
 
   setIntValueMethodFormat(element: HTMLElement, value: number): void {
@@ -233,13 +235,19 @@ class DjangoFormset {
   }
 
   decrementTotalForms(): void {
-    var value = parseInt(this.totalFormsElement.getAttribute("value"));
-    this.totalFormsElement.setAttribute("value", (value - 1).toString());
+    var totalNumberOfForms = this.getNumberOfTotalForms();
+    this.totalFormsElement.setAttribute(
+      "value",
+      (totalNumberOfForms - 1).toString()
+    );
   }
 
   incrementTotalForms(): void {
-    var value = parseInt(this.totalFormsElement.getAttribute("value"));
-    this.totalFormsElement.setAttribute("value", (value + 1).toString());
+    var totalNumberOfForms = this.getNumberOfTotalForms();
+    this.totalFormsElement.setAttribute(
+      "value",
+      (totalNumberOfForms + 1).toString()
+    );
   }
 
   getForms(): NodeListOf<HTMLElement> {
@@ -292,9 +300,13 @@ class DjangoFormset {
   onAddingElement(element: HTMLElement): void {
     var newElement = this.formTemplate.cloneNode(true) as HTMLElement;
     this.setupElement(newElement, this.getNumberOfTotalForms() + 1);
-    this.formsWrapper.append(newElement);
     this.incrementTotalForms();
     this.update();
+  }
+
+  insertNewElement(newElement): void {
+    var forms = this.getForms();
+    this.insertAfter(newElement, forms[forms.length - 1]);
   }
 
   getDefaultDeleteElement(): HTMLElement {
@@ -331,11 +343,11 @@ class DjangoFormset {
     this.update();
   }
 
-  getDeleteId(index) {
+  getDeleteId(index): string {
     return this.getIdSignature(`${this.prefix}-${index}-DELETE`);
   }
 
-  getDeletingElement(index) {
+  getDeletingElement(index): HTMLInputElement {
     return document.getElementById(this.getDeleteId(index)) as HTMLInputElement;
   }
 
@@ -390,18 +402,18 @@ class DjangoFormset {
     return clonedElement;
   }
 
-  insertAfter(newElement: HTMLElement, referenceElement: HTMLElement) {
+  insertAfter(newElement: HTMLElement, referenceElement: HTMLElement): void {
     referenceElement.parentNode.insertBefore(
       newElement,
       referenceElement.nextSibling
     );
   }
 
-  insertBefore(newElement: HTMLElement, referenceElement: HTMLElement) {
+  insertBefore(newElement: HTMLElement, referenceElement: HTMLElement): void {
     referenceElement.parentNode.insertBefore(newElement, referenceElement);
   }
 
-  onMovingAfter(element: HTMLElement) {
+  onMovingAfter(element: HTMLElement): void {
     var form = element.closest(this.selector);
     var clonedForm = form.cloneNode(true) as HTMLElement;
     var visibleForms = this.getVisibleForms();
@@ -411,7 +423,7 @@ class DjangoFormset {
     this.update();
   }
 
-  onMovingBefore(element: HTMLElement) {
+  onMovingBefore(element: HTMLElement): void {
     var form = element.closest(this.selector);
     var clonedForm = form.cloneNode(true) as HTMLElement;
     var visibleForms = this.getVisibleForms();
@@ -421,7 +433,7 @@ class DjangoFormset {
     this.update();
   }
 
-  getIndex(elementList, elementReference) {
+  getIndex(elementList, elementReference): number {
     for (let index = 0; index < elementList.length; index++) {
       const element = elementList[index];
       if (element == elementReference) {
@@ -595,11 +607,12 @@ class DjangoFormset {
       this.setVisibility(label, false);
     }
   }
-  getOrderId(index: any) {
+
+  getOrderId(index: number): string {
     return this.getIdSignature(`${this.prefix}-${index}-ORDER`);
   }
 
-  hideDeleteElement(index) {
+  hideDeleteElement(index): void {
     var input = document.querySelector(
       `#${this.getDeleteId(index)}`
     ) as HTMLElement;
@@ -634,7 +647,7 @@ class DjangoFormset {
     this.setVisibility(addWrapper, isVisible);
   }
 
-  updateVisibleFormsDelete() {
+  updateVisibleFormsDelete(): void {
     var visibleForms = this.getVisibleForms();
     for (let index = 0; index < visibleForms.length; index++) {
       var form = visibleForms[index];
@@ -643,7 +656,7 @@ class DjangoFormset {
     }
   }
 
-  updateVisibleFormsOrder() {
+  updateVisibleFormsOrder(): void {
     var visibleForms = this.getVisibleForms();
     for (let index = 0; index < visibleForms.length; index++) {
       var form = visibleForms[index];
@@ -653,7 +666,7 @@ class DjangoFormset {
     }
   }
 
-  setOrderValueByIndex(id: string, index: number) {
+  setOrderValueByIndex(id: string, index: number): void {
     var order = document.getElementById(
       this.getIdSignature(`${this.prefix}-${id}-ORDER`)
     );
