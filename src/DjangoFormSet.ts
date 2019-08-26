@@ -584,12 +584,16 @@ class DjangoFormset {
     var input = document.querySelector(
       `#${this.getOrderId(index)}`
     ) as HTMLElement;
-    this.setVisibility(input, false);
+    if (input) {
+      this.setVisibility(input, false);
+    }
 
     var label = document.querySelector(
       `label[for='${this.getOrderId(index)}']`
     ) as HTMLElement;
-    this.setVisibility(label, false);
+    if (label) {
+      this.setVisibility(label, false);
+    }
   }
   getOrderId(index: any) {
     return this.getIdSignature(`${this.prefix}-${index}-ORDER`);
@@ -599,12 +603,16 @@ class DjangoFormset {
     var input = document.querySelector(
       `#${this.getDeleteId(index)}`
     ) as HTMLElement;
-    this.setVisibility(input, false);
+    if (input) {
+      this.setVisibility(input, false);
+    }
 
     var label = document.querySelector(
       `label[for='${this.getDeleteId(index)}']`
     ) as HTMLElement;
-    this.setVisibility(label, false);
+    if (label) {
+      this.setVisibility(label, false);
+    }
   }
 
   setVisibility(htmlElement: HTMLElement, isVisible: boolean): void {
