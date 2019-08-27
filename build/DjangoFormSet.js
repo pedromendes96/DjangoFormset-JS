@@ -470,6 +470,19 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.insertBefore = function (newElement, referenceElement) {
         referenceElement.parentNode.insertBefore(newElement, referenceElement);
     };
+    DjangoFormset.prototype.moveForm = function (formElement, index) {
+        var clonedForm = formElement.cloneNode(true);
+        var visibleForms = this.getVisibleForms();
+        var referenceElement = visibleForms[index];
+        formElement.remove();
+        if (index < visibleForms.length - 1) {
+            this.insertBefore(clonedForm, referenceElement);
+        }
+        else {
+            this.insertAfter(clonedForm, referenceElement);
+        }
+        this.update();
+    };
     /**
      * Clones the moving form, remove it and set the cloned in the right position
      * @param formElement
