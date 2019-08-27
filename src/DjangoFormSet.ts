@@ -62,11 +62,13 @@ class DjangoFormset {
   private addElement: HTMLElement;
   private addElementDefaultText: string;
   private addElementWrapperSelector: string;
+  private addVisibilityFunction: Function;
 
   private canDelete: boolean;
   private deleteElement: HTMLElement;
   private deleteElementDefaultText: string;
   private deleteElementWrapperSelector: string;
+  private deleteVisibilityFunction: Function;
 
   private canOrder: boolean;
   private orderElement: HTMLElement;
@@ -119,11 +121,13 @@ class DjangoFormset {
       addElement = undefined,
       addElementDefaultText = "Add",
       addElementWrapperSelector = ".formset-wrapper-add",
+      addVisibilityFunction = undefined,
 
       canDelete = false,
       deleteElement = undefined,
       deleteElementDefaultText = "Delete",
       deleteElementWrapperSelector = ".formset-wrapper-delete",
+      deleteVisibilityFunction = null,
 
       canOrder = false,
       orderElement = undefined,
@@ -140,10 +144,12 @@ class DjangoFormset {
     this.prefix = prefix;
     this.addElementDefaultText = addElementDefaultText;
     this.addElementWrapperSelector = addElementWrapperSelector;
+    this.addVisibilityFunction = addVisibilityFunction;
 
     this.canDelete = canDelete;
     this.deleteElementDefaultText = deleteElementDefaultText;
     this.deleteElementWrapperSelector = deleteElementWrapperSelector;
+    this.deleteVisibilityFunction = deleteVisibilityFunction;
 
     this.canOrder = canOrder;
     this.orderElementBeforeSelector = orderElementBeforeSelector;
@@ -912,8 +918,13 @@ class DjangoFormset {
     ) as HTMLElement;
     var canAdd = this.getNumberOfMaxForms() > this.getNumberOfVisibleForms();
     var visibleForms = this.getVisibleForms();
-    var isVisible =
-      canAdd && visibleForms[visibleForms.length - 1] == formElement;
+    var isVisible: boolean;
+    if (this.addVisibilityFunction) {
+      isVisible = this.addVisibilityFunction(formElement, index);
+    } else {
+      isVisible =
+        canAdd && visibleForms[visibleForms.length - 1] == formElement;
+    }
     this.setVisibility(addWrapper, isVisible);
   }
 
@@ -923,7 +934,6 @@ class DjangoFormset {
   updateVisibleFormsDelete(): void {
     var visibleForms = this.getVisibleForms();
     for (let index = 0; index < visibleForms.length; index++) {
-      var form = visibleForms[index];
       this.hideDeleteElement(index);
     }
   }
@@ -966,7 +976,12 @@ class DjangoFormset {
     var numberOfMinForms = this.getNumberOfMinForms();
     var numberOfTotalVisibleForms = this.getNumberOfVisibleForms();
 
-    var isVisible = numberOfTotalVisibleForms > numberOfMinForms;
+    var isVisible: boolean;
+    if (this.deleteVisibilityFunction) {
+      isVisible = this.deleteVisibilityFunction(formElement, index);
+    } else {
+      isVisible = numberOfTotalVisibleForms > numberOfMinForms;
+    }
     this.setVisibility(deleteWrapper, isVisible);
   }
 
