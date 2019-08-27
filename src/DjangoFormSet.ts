@@ -1,10 +1,27 @@
+/**
+ * @author Pedro Mendes
+ * @version 1.0.0
+ */
+
 type Handler<E> = (event: E) => void;
 
+/** Class that will handle the registration and the fire of the events */
 class EventDispatcher<E> {
+  /** Handlers registered in the Dispatcher */
   private handlers: Handler<E>[] = [];
+
+  /**
+   * Fires the event in all the handlers that have been registered.
+   * @param event - The data that handlers can evaluate
+   */
   fire(event: E): void {
     for (let h of this.handlers) h(event);
   }
+
+  /**
+   * Register a handler for a respecitve dispatch of a specific event.
+   * @param handler
+   */
   register(handler: Handler<E>): void {
     this.handlers.push(handler);
   }
@@ -31,6 +48,9 @@ interface AfterOrderEvent {
   orderedElement: HTMLElement;
 }
 
+/**
+ * Class representing the formset
+ */
 class DjangoFormset {
   private selector: string;
   private prefix: string;
@@ -72,6 +92,26 @@ class DjangoFormset {
 
   private autoId: string;
 
+  /**
+   * Create a instance of the DjangoFormset
+   * @param {string} selector
+   * @param {string} [prefix="form"]
+   * @param {HTMLElement} [addElement=undefined]
+   * @param {string} [addElementDefaultText="Add"]
+   * @param {string} [addElementWrapperSelector=".formset-wrapper-add"]
+   * @param {boolean} [canDelete=false]
+   * @param {HTMLElement} [deleteElement=undefined]
+   * @param {string} [deleteElementDefaultText="Delete"]
+   * @param {string} [deleteElementWrapperSelector=".formset-wrapper-delete"]
+   * @param {boolean} [canOrder=false]
+   * @param {HTMLElement} [orderElement=undefined]
+   * @param {string} [orderElementBeforeSelector=".formset-order-before"]
+   * @param {string} [orderElementBeforeDefaultText="Before"]
+   * @param {string} [orderElementAfterSelector=".formset-order-after"]
+   * @param {string} [orderElementAfterDefaultText="After"]
+   * @param {string} [orderElementWrapperSelector=".formset-wrapper-order"]
+   * @param {string} [autoId="id_%s"]
+   */
   constructor(
     selector: string,
     {
@@ -131,64 +171,121 @@ class DjangoFormset {
     var forms = this.getForms();
     if (forms.length) {
       var formReference = forms[0];
-      this.formTemplate = this.cleanForm(formReference);
+      this.formTemplate = this.resetForm(formReference);
     } else {
       throw "Must have atleast one form to create a template!";
     }
   }
 
+  /**
+   * Regist a handle to trigger in beforeAddEvent
+   * @param handler Handle that will be executed in beforeAddEvent
+   */
   public onBeforeAdd(handler: Handler<BeforeAddEvent>): void {
     this.beforeAddDispatcher.register(handler);
   }
 
+  /**
+   * Trigger the beforeAddEvent
+   * @param event Event that will be fired
+   */
   private fireBeforeAdd(event: BeforeAddEvent): void {
     this.beforeAddDispatcher.fire(event);
   }
 
+  /**
+   * Regist a handle to trigger in afterAddEvent
+   * @param handler Handle that will be executed in afterAddEvent
+   */
   public onAfterAdd(handler: Handler<AfterAddEvent>): void {
     this.afterAddDispatcher.register(handler);
   }
 
+  /**
+   * Trigger the afterAddEvent
+   * @param event Event that will be fired
+   */
   private fireAfterAdd(event: AfterAddEvent): void {
     this.afterAddDispatcher.fire(event);
   }
 
+  /**
+   * Regist a handle to trigger in beforeDeleteEvent
+   * @param handler Handle that will be executed in beforeDeleteEvent
+   */
   public onBeforeDelete(handler: Handler<BeforeDeleteEvent>): void {
     this.beforeDeleteDispatcher.register(handler);
   }
 
+  /**
+   * Trigger the beforeDeleteEvent
+   * @param event Event that will be fired
+   */
   private fireBeforeDelete(event: BeforeDeleteEvent): void {
     this.beforeDeleteDispatcher.fire(event);
   }
 
+  /**
+   * Regist a handle to trigger in afterDeleteEvent
+   * @param handler Handle that will be executed in afterDeleteEvent
+   */
   public onAfterDelete(handler: Handler<AfterDeleteEvent>): void {
     this.afterDeleteDispatcher.register(handler);
   }
 
+  /**
+   * Trigger the afterDeleteEvent
+   * @param event Event that will be fired
+   */
   private fireAfterDelete(event: AfterDeleteEvent): void {
     this.afterDeleteDispatcher.fire(event);
   }
 
+  /**
+   * Regist a handle to trigger in beforeOrderEvent
+   * @param handler Handle that will be executed in beforeOrderEvent
+   */
   public onBeforeOrder(handler: Handler<BeforeOrderEvent>): void {
     this.beforeOrderDispatcher.register(handler);
   }
 
+  /**
+   * Trigger the beforeOrderEvent
+   * @param event Event that will be fired
+   */
   private fireBeforeOrder(event: BeforeOrderEvent): void {
     this.beforeOrderDispatcher.fire(event);
   }
 
+  /**
+   * Regist a handle to trigger in afterOrderEvent
+   * @param handler Handle that will be executed in afterOrderEvent
+   */
   public onAfterOrder(handler: Handler<AfterOrderEvent>): void {
     this.afterOrderDispatcher.register(handler);
   }
 
+  /**
+   * Trigger the afterOrderEvent
+   * @param event Event that will be fired
+   */
   private fireAfterOrder(event: AfterOrderEvent): void {
     this.afterOrderDispatcher.fire(event);
   }
 
-  getIdSignature(str: string): string {
-    return this.autoId.replace("%s", str);
+  /**
+   * Gets the correct id of the given autoId
+   * @param id Formated id for a specific element
+   * @returns Return the correct id for the desired element
+   */
+  getIdSignature(id: string): string {
+    return this.autoId.replace("%s", id);
   }
 
+  /**
+   *  Return the integer value of the element attribute "value"
+   * @param element
+   */
   getIntValueMethodFormat(element: HTMLElement): number {
     try {
       return parseInt(element.getAttribute("value"));
@@ -197,34 +294,49 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Sets the value of the attribute "value" of one specific HTMLElement
+   * @param element
+   * @param value
+   */
   setIntValueMethodFormat(element: HTMLElement, value: number): void {
     element.setAttribute("value", value.toString());
   }
 
+  /**
+   * Returns the number of total forms (hidden forms included)
+   */
   getNumberOfTotalForms(): number {
     return this.getIntValueMethodFormat(this.totalFormsElement);
   }
 
+  /**
+   * Returns the number of visible total forms (hidden forms excluded)
+   */
   getNumberOfVisibleForms(): number {
-    var forms = this.getForms();
-    var numberOfVisibleForms = 0;
-    for (let index = 0; index < forms.length; index++) {
-      const element = forms[index];
-      if (element.offsetWidth > 0 && element.offsetHeight > 0) {
-        numberOfVisibleForms += 1;
-      }
-    }
-    return numberOfVisibleForms;
+    return this.getVisibleForms().length;
   }
 
+  /**
+   * Returns the value of the minimum forms inserted in the formset
+   */
   getNumberOfMinForms(): number {
     return this.getIntValueMethodFormat(this.minFormsElement);
   }
 
+  /**
+   * Returns the value of the maximum forms inserted in the formset
+   */
   getNumberOfMaxForms(): number {
     return this.getIntValueMethodFormat(this.maxFormsElement);
   }
 
+  /**
+   * For given css selector in one form append an element
+   * @param form
+   * @param element
+   * @param selector
+   */
   setupElementInFormBySelector(
     form: HTMLElement,
     element: HTMLElement,
@@ -234,6 +346,9 @@ class DjangoFormset {
     elementWrapper.append(element);
   }
 
+  /**
+   * Decrements the number of total forms in the hidden input
+   */
   decrementTotalForms(): void {
     var totalNumberOfForms = this.getNumberOfTotalForms();
     this.totalFormsElement.setAttribute(
@@ -242,6 +357,9 @@ class DjangoFormset {
     );
   }
 
+  /**
+   * Increases the number of total forms in the hidden input
+   */
   incrementTotalForms(): void {
     var totalNumberOfForms = this.getNumberOfTotalForms();
     this.totalFormsElement.setAttribute(
@@ -250,10 +368,16 @@ class DjangoFormset {
     );
   }
 
+  /**
+   * Return all forms of the formset.
+   */
   getForms(): NodeListOf<HTMLElement> {
     return document.querySelectorAll(this.selector);
   }
 
+  /**
+   * Return a list of the current visible forms
+   */
   getVisibleForms(): Array<HTMLElement> {
     var forms = this.getForms();
     var visibleForms = [];
@@ -266,7 +390,11 @@ class DjangoFormset {
     return visibleForms;
   }
 
-  cleanForm(form: HTMLElement): HTMLElement {
+  /**
+   * Cleans all the form :inputs elements
+   * @param form
+   */
+  resetForm(form: HTMLElement): HTMLElement {
     var formTemplate = form.cloneNode(true) as HTMLElement;
     var inputs = formTemplate.querySelectorAll("input, textarea, select");
     for (let index = 0; index < inputs.length; index++) {
@@ -276,6 +404,9 @@ class DjangoFormset {
     return formTemplate;
   }
 
+  /**
+   * Returns a default add element.
+   */
   getDefaultAddElement(): HTMLElement {
     var addButton = document.createElement("button");
     addButton.setAttribute("type", "button");
@@ -283,32 +414,51 @@ class DjangoFormset {
     return addButton;
   }
 
+  /**
+   * Clone the selected addElement and sets all the existent events for the Add action
+   */
   getSetupAddElement(): HTMLElement {
     var clonedElement = this.addElement.cloneNode(true) as HTMLElement;
     clonedElement.addEventListener("click", () => {
+      var form = this.getParentForm(clonedElement);
       this.fireBeforeAdd({
-        newElement: clonedElement
+        newElement: form
       });
-      this.onAddingElement(clonedElement);
+      this.onAddingElement();
       this.fireAfterAdd({
-        newElement: clonedElement
+        newElement: form
       });
     });
     return clonedElement;
   }
 
-  onAddingElement(element: HTMLElement): void {
+  getParentForm(element) {
+    return element.closest(this.selector) as HTMLElement;
+  }
+
+  /**
+   *  Clones a form , set the respective events and update the current index in the forms
+   */
+  onAddingElement(): void {
     var newElement = this.formTemplate.cloneNode(true) as HTMLElement;
     this.setupElement(newElement, this.getNumberOfTotalForms() + 1);
+    this.insertNewElement(newElement);
     this.incrementTotalForms();
     this.update();
   }
 
-  insertNewElement(newElement): void {
+  /**
+   * Add a new form in the formset
+   * @param newForm
+   */
+  insertNewElement(newForm): void {
     var forms = this.getForms();
-    this.insertAfter(newElement, forms[forms.length - 1]);
+    this.insertAfter(newForm, forms[forms.length - 1]);
   }
 
+  /**
+   * Returns a default delete element.
+   */
   getDefaultDeleteElement(): HTMLElement {
     var deleteButton = document.createElement("button");
     deleteButton.setAttribute("type", "button");
@@ -316,41 +466,59 @@ class DjangoFormset {
     return deleteButton;
   }
 
+  /**
+   * Clone the selected delete element and sets all the existent events for the Delete action
+   */
   getSetupDeleteElement(): HTMLElement {
     var clonedElement = this.deleteElement.cloneNode(true) as HTMLElement;
     clonedElement.addEventListener("click", () => {
+      var form = this.getParentForm(clonedElement);
       this.fireBeforeDelete({
-        deletedElement: clonedElement
+        deletedElement: form
       });
-      this.onDeletingElement(clonedElement);
+      this.onDeletingElement(form);
       this.fireAfterDelete({
-        deletedElement: clonedElement
+        deletedElement: form
       });
     });
     return clonedElement;
   }
 
-  onDeletingElement(element: HTMLElement): void {
-    var form = element.closest(this.selector) as HTMLElement;
+  /**
+   * If the formset had permittion to delete, it hides the form for delete in server-side, otherwise removes from the DOM
+   * @param formElement
+   */
+  onDeletingElement(formElement: HTMLElement): void {
     if (this.canDelete) {
-      this.setVisibility(form, false);
-      var index = this.getIndex(this.getForms(), form);
+      this.setVisibility(formElement, false);
+      var index = this.getIndex(this.getForms(), formElement);
       var deletingElementCheckBox = this.getDeletingElement(index);
       deletingElementCheckBox.checked = true;
     } else {
-      form.remove();
+      formElement.remove();
     }
     this.update();
   }
 
+  /**
+   * Returns the correct ID of the DELETE element
+   * @param index
+   */
   getDeleteId(index): string {
     return this.getIdSignature(`${this.prefix}-${index}-DELETE`);
   }
 
+  /**
+   * Returns the delete element
+   * @param index
+   */
   getDeletingElement(index): HTMLInputElement {
     return document.getElementById(this.getDeleteId(index)) as HTMLInputElement;
   }
 
+  /**
+   * Returns a default order element.
+   */
   getDefaultOrderElement(): HTMLElement {
     var wrapper = document.createElement("div");
 
@@ -371,6 +539,9 @@ class DjangoFormset {
     return wrapper;
   }
 
+  /**
+   * Clone the selected orderElement and sets all the existent events for the order action
+   */
   getSetupOrderElement(orderElement: HTMLElement = undefined): HTMLElement {
     var clonedElement =
       orderElement || (this.orderElement.cloneNode(true) as HTMLElement);
@@ -378,12 +549,13 @@ class DjangoFormset {
       this.orderElementBeforeSelector
     );
     beforeElement.addEventListener("click", () => {
+      var form = this.getParentForm(clonedElement);
       this.fireBeforeOrder({
-        orderedElement: clonedElement
+        orderedElement: form
       });
-      this.onMovingBefore(clonedElement);
+      this.onMovingBefore(form);
       this.fireAfterOrder({
-        orderedElement: clonedElement
+        orderedElement: form
       });
     });
 
@@ -391,17 +563,23 @@ class DjangoFormset {
       this.orderElementAfterSelector
     );
     afterElement.addEventListener("click", () => {
+      var form = this.getParentForm(clonedElement);
       this.fireBeforeOrder({
-        orderedElement: clonedElement
+        orderedElement: form
       });
-      this.onMovingAfter(clonedElement);
+      this.onMovingAfter(form);
       this.fireAfterOrder({
-        orderedElement: clonedElement
+        orderedElement: form
       });
     });
     return clonedElement;
   }
 
+  /**
+   * Insert a newElement after the referenceElement
+   * @param newElement
+   * @param referenceElement
+   */
   insertAfter(newElement: HTMLElement, referenceElement: HTMLElement): void {
     referenceElement.parentNode.insertBefore(
       newElement,
@@ -409,30 +587,48 @@ class DjangoFormset {
     );
   }
 
+  /**
+   * Insert a newElement before the referenceElement
+   * @param newElement
+   * @param referenceElement
+   */
   insertBefore(newElement: HTMLElement, referenceElement: HTMLElement): void {
     referenceElement.parentNode.insertBefore(newElement, referenceElement);
   }
 
-  onMovingAfter(element: HTMLElement): void {
-    var form = element.closest(this.selector);
-    var clonedForm = form.cloneNode(true) as HTMLElement;
+  /**
+   * Clones the moving form, remove it and set the cloned in the right position
+   * @param formElement
+   */
+  onMovingAfter(formElement: HTMLElement): void {
+    var clonedForm = formElement.cloneNode(true) as HTMLElement;
     var visibleForms = this.getVisibleForms();
-    var referenceElement = visibleForms[this.getIndex(visibleForms, form) + 1];
-    form.remove();
+    var referenceElement =
+      visibleForms[this.getIndex(visibleForms, formElement) + 1];
+    formElement.remove();
     this.insertAfter(this.getSetupOrderElement(clonedForm), referenceElement);
     this.update();
   }
 
-  onMovingBefore(element: HTMLElement): void {
-    var form = element.closest(this.selector);
-    var clonedForm = form.cloneNode(true) as HTMLElement;
+  /**
+   * Clones the moving form, remove it and set the cloned in the right position
+   * @param formElement
+   */
+  onMovingBefore(formElement: HTMLElement): void {
+    var clonedForm = formElement.cloneNode(true) as HTMLElement;
     var visibleForms = this.getVisibleForms();
-    var referenceElement = visibleForms[this.getIndex(visibleForms, form) - 1];
-    form.remove();
+    var referenceElement =
+      visibleForms[this.getIndex(visibleForms, formElement) - 1];
+    formElement.remove();
     this.insertBefore(this.getSetupOrderElement(clonedForm), referenceElement);
     this.update();
   }
 
+  /**
+   * Returns the index of a element in a list, in can the element doesn't exist returns -1
+   * @param elementList
+   * @param elementReference
+   */
   getIndex(elementList, elementReference): number {
     for (let index = 0; index < elementList.length; index++) {
       const element = elementList[index];
@@ -443,6 +639,9 @@ class DjangoFormset {
     return -1;
   }
 
+  /**
+   * Creates every help elements, and hides extra fields
+   */
   setup(): void {
     var forms = this.getForms();
     for (let index = 0; index < forms.length; index++) {
@@ -460,6 +659,9 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Updates the visibility of the elements around the form and update the index of the fields
+   */
   update(): void {
     var forms = this.getForms();
     for (let index = 0; index < forms.length; index++) {
@@ -476,6 +678,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * For a given element updates the index and sets elements visibility
+   * @param formElement
+   * @param index
+   */
   updateElement(formElement: HTMLElement, index: number): void {
     this.recursiveAdaptChidrenToIndex(formElement, index - 1);
 
@@ -487,6 +694,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Search for all children and change the name, for, id attributes if exist in the element and respect the respective regex.
+   * @param element
+   * @param index
+   */
   recursiveAdaptChidrenToIndex(element: HTMLElement, index: number): void {
     var children = element.children;
     for (let i = 0; i < children.length; i++) {
@@ -496,6 +708,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * For an elemnt changes the attributes if respect a specific regex
+   * @param element
+   * @param index
+   */
   changeElementAttributesToIndex(element: HTMLElement, index: number): void {
     var name = element.getAttribute("name");
     if (name) {
@@ -516,6 +733,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Changes the attribute name if respects the regex
+   * @param name
+   * @param index
+   */
   getReplacedNamePattern(name: string, index: number): string {
     var namePattern = new RegExp(`${this.prefix}-\\d+-.+`);
     if (namePattern.exec(name)) {
@@ -526,6 +748,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Changes the attribute id if respects the regex
+   * @param id
+   * @param index
+   */
   getReplacedIdPattern(id, index): string {
     var idPattern = new RegExp(this.getIdSignature(`${this.prefix}-\\d+-.+`));
     if (idPattern.exec(id)) {
@@ -540,6 +767,10 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Return the form index
+   * @param formElement
+   */
   getFormId(formElement: HTMLElement): string {
     return this.recursiveFindFirstId(formElement);
   }

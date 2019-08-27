@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: DjangoFormSet.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: DjangoFormSet.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @author Pedro Mendes
  * @version 1.0.0
  */
@@ -13,7 +41,7 @@ var EventDispatcher = /** @class */ (function () {
      * @param event - The data that handlers can evaluate
      */
     EventDispatcher.prototype.fire = function (event) {
-        for (var _i = 0, _a = this.handlers; _i < _a.length; _i++) {
+        for (var _i = 0, _a = this.handlers; _i &lt; _a.length; _i++) {
             var h = _a[_i];
             h(event);
         }
@@ -260,9 +288,9 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.getVisibleForms = function () {
         var forms = this.getForms();
         var visibleForms = [];
-        for (var index = 0; index < forms.length; index++) {
+        for (var index = 0; index &lt; forms.length; index++) {
             var element = forms[index];
-            if (element.offsetWidth > 0 && element.offsetHeight > 0) {
+            if (element.offsetWidth > 0 &amp;&amp; element.offsetHeight > 0) {
                 visibleForms.push(element);
             }
         }
@@ -275,7 +303,7 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.resetForm = function (form) {
         var formTemplate = form.cloneNode(true);
         var inputs = formTemplate.querySelectorAll("input, textarea, select");
-        for (var index = 0; index < inputs.length; index++) {
+        for (var index = 0; index &lt; inputs.length; index++) {
             var element = inputs[index];
             element.setAttribute("value", "");
         }
@@ -317,7 +345,6 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.onAddingElement = function () {
         var newElement = this.formTemplate.cloneNode(true);
         this.setupElement(newElement, this.getNumberOfTotalForms() + 1);
-        this.insertNewElement(newElement);
         this.incrementTotalForms();
         this.update();
     };
@@ -434,26 +461,12 @@ var DjangoFormset = /** @class */ (function () {
         });
         return clonedElement;
     };
-    /**
-     * Insert a newElement after the referenceElement
-     * @param newElement
-     * @param referenceElement
-     */
     DjangoFormset.prototype.insertAfter = function (newElement, referenceElement) {
         referenceElement.parentNode.insertBefore(newElement, referenceElement.nextSibling);
     };
-    /**
-     * Insert a newElement before the referenceElement
-     * @param newElement
-     * @param referenceElement
-     */
     DjangoFormset.prototype.insertBefore = function (newElement, referenceElement) {
         referenceElement.parentNode.insertBefore(newElement, referenceElement);
     };
-    /**
-     * Clones the moving form, remove it and set the cloned in the right position
-     * @param formElement
-     */
     DjangoFormset.prototype.onMovingAfter = function (formElement) {
         var clonedForm = formElement.cloneNode(true);
         var visibleForms = this.getVisibleForms();
@@ -462,10 +475,6 @@ var DjangoFormset = /** @class */ (function () {
         this.insertAfter(this.getSetupOrderElement(clonedForm), referenceElement);
         this.update();
     };
-    /**
-     * Clones the moving form, remove it and set the cloned in the right position
-     * @param formElement
-     */
     DjangoFormset.prototype.onMovingBefore = function (formElement) {
         var clonedForm = formElement.cloneNode(true);
         var visibleForms = this.getVisibleForms();
@@ -474,13 +483,8 @@ var DjangoFormset = /** @class */ (function () {
         this.insertBefore(this.getSetupOrderElement(clonedForm), referenceElement);
         this.update();
     };
-    /**
-     * Returns the index of a element in a list, in can the element doesn't exist returns -1
-     * @param elementList
-     * @param elementReference
-     */
     DjangoFormset.prototype.getIndex = function (elementList, elementReference) {
-        for (var index = 0; index < elementList.length; index++) {
+        for (var index = 0; index &lt; elementList.length; index++) {
             var element = elementList[index];
             if (element == elementReference) {
                 return index;
@@ -488,12 +492,9 @@ var DjangoFormset = /** @class */ (function () {
         }
         return -1;
     };
-    /**
-     * Creates every help elements, and hides extra fields
-     */
     DjangoFormset.prototype.setup = function () {
         var forms = this.getForms();
-        for (var index = 0; index < forms.length; index++) {
+        for (var index = 0; index &lt; forms.length; index++) {
             var element = forms[index];
             this.setupElement(element, index + 1);
             if (this.canDelete) {
@@ -505,12 +506,9 @@ var DjangoFormset = /** @class */ (function () {
             }
         }
     };
-    /**
-     * Updates the visibility of the elements around the form and update the index of the fields
-     */
     DjangoFormset.prototype.update = function () {
         var forms = this.getForms();
-        for (var index = 0; index < forms.length; index++) {
+        for (var index = 0; index &lt; forms.length; index++) {
             var element = forms[index];
             this.updateElement(element, index + 1);
         }
@@ -521,11 +519,6 @@ var DjangoFormset = /** @class */ (function () {
             this.updateVisibleFormsOrder();
         }
     };
-    /**
-     * For a given element updates the index and sets elements visibility
-     * @param formElement
-     * @param index
-     */
     DjangoFormset.prototype.updateElement = function (formElement, index) {
         this.recursiveAdaptChidrenToIndex(formElement, index - 1);
         this.updateAddElement(formElement, index);
@@ -534,24 +527,14 @@ var DjangoFormset = /** @class */ (function () {
             this.updateOrderElement(formElement, index);
         }
     };
-    /**
-     * Search for all children and change the name, for, id attributes if exist in the element and respect the respective regex.
-     * @param element
-     * @param index
-     */
     DjangoFormset.prototype.recursiveAdaptChidrenToIndex = function (element, index) {
         var children = element.children;
-        for (var i = 0; i < children.length; i++) {
+        for (var i = 0; i &lt; children.length; i++) {
             var element_1 = children[i];
             this.changeElementAttributesToIndex(element_1, index);
             this.recursiveAdaptChidrenToIndex(element_1, index);
         }
     };
-    /**
-     * For an elemnt changes the attributes if respect a specific regex
-     * @param element
-     * @param index
-     */
     DjangoFormset.prototype.changeElementAttributesToIndex = function (element, index) {
         var name = element.getAttribute("name");
         if (name) {
@@ -566,11 +549,6 @@ var DjangoFormset = /** @class */ (function () {
             element.setAttribute("id", this.getReplacedIdPattern(id, index));
         }
     };
-    /**
-     * Changes the attribute name if respects the regex
-     * @param name
-     * @param index
-     */
     DjangoFormset.prototype.getReplacedNamePattern = function (name, index) {
         var namePattern = new RegExp(this.prefix + "-\\d+-.+");
         if (namePattern.exec(name)) {
@@ -581,11 +559,6 @@ var DjangoFormset = /** @class */ (function () {
             return name;
         }
     };
-    /**
-     * Changes the attribute id if respects the regex
-     * @param id
-     * @param index
-     */
     DjangoFormset.prototype.getReplacedIdPattern = function (id, index) {
         var idPattern = new RegExp(this.getIdSignature(this.prefix + "-\\d+-.+"));
         if (idPattern.exec(id)) {
@@ -596,16 +569,12 @@ var DjangoFormset = /** @class */ (function () {
             return id;
         }
     };
-    /**
-     * Return the form index
-     * @param formElement
-     */
     DjangoFormset.prototype.getFormId = function (formElement) {
         return this.recursiveFindFirstId(formElement);
     };
     DjangoFormset.prototype.recursiveFindFirstId = function (element) {
         var children = element.children;
-        for (var i = 0; i < children.length; i++) {
+        for (var i = 0; i &lt; children.length; i++) {
             var element_2 = children[i];
             var id = element_2.getAttribute("id");
             var idPattern = new RegExp(this.getIdSignature(this.prefix + "-\\d+-.+"));
@@ -670,12 +639,12 @@ var DjangoFormset = /** @class */ (function () {
         var addWrapper = formElement.querySelector(this.addElementWrapperSelector);
         var canAdd = this.getNumberOfMaxForms() > this.getNumberOfVisibleForms();
         var visibleForms = this.getVisibleForms();
-        var isVisible = canAdd && visibleForms[visibleForms.length - 1] == formElement;
+        var isVisible = canAdd &amp;&amp; visibleForms[visibleForms.length - 1] == formElement;
         this.setVisibility(addWrapper, isVisible);
     };
     DjangoFormset.prototype.updateVisibleFormsDelete = function () {
         var visibleForms = this.getVisibleForms();
-        for (var index = 0; index < visibleForms.length; index++) {
+        for (var index = 0; index &lt; visibleForms.length; index++) {
             var form = visibleForms[index];
             var id = this.getFormId(form);
             this.hideDeleteElement(index);
@@ -683,7 +652,7 @@ var DjangoFormset = /** @class */ (function () {
     };
     DjangoFormset.prototype.updateVisibleFormsOrder = function () {
         var visibleForms = this.getVisibleForms();
-        for (var index = 0; index < visibleForms.length; index++) {
+        for (var index = 0; index &lt; visibleForms.length; index++) {
             var form = visibleForms[index];
             var id = this.getFormId(form);
             this.setOrderValueByIndex(id, index);
@@ -713,3 +682,26 @@ var DjangoFormset = /** @class */ (function () {
     };
     return DjangoFormset;
 }());
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#DjangoFormset">DjangoFormset</a></li><li><a href="global.html#EventDispatcher">EventDispatcher</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Aug 27 2019 00:44:03 GMT+0100 (Western European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
