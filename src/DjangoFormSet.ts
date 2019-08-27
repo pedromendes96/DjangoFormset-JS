@@ -62,6 +62,7 @@ class DjangoFormset {
   private addElement: HTMLElement;
   private addElementDefaultText: string;
   private addElementWrapperSelector: string;
+  private addElementActionFunction: Function;
   private addVisibilityFunction: Function;
 
   private canDelete: boolean;
@@ -72,6 +73,7 @@ class DjangoFormset {
 
   private canOrder: boolean;
   private orderElement: HTMLElement;
+  private showOrderElement: boolean;
   private orderElementBeforeSelector: string;
   private orderElementBeforeDefaultText: string;
   private orderElementAfterSelector: string;
@@ -121,6 +123,7 @@ class DjangoFormset {
       addElement = undefined,
       addElementDefaultText = "Add",
       addElementWrapperSelector = ".formset-wrapper-add",
+      addElementActionFunction = undefined,
       addVisibilityFunction = undefined,
 
       canDelete = false,
@@ -131,12 +134,12 @@ class DjangoFormset {
 
       canOrder = false,
       orderElement = undefined,
+      showOrderElement = true,
       orderElementBeforeSelector = ".formset-order-before",
       orderElementBeforeDefaultText = "Before",
       orderElementAfterSelector = ".formset-order-after",
       orderElementAfterDefaultText = "After",
       orderElementWrapperSelector = ".formset-wrapper-order",
-
       autoId = "id_%s"
     } = {}
   ) {
@@ -144,6 +147,7 @@ class DjangoFormset {
     this.prefix = prefix;
     this.addElementDefaultText = addElementDefaultText;
     this.addElementWrapperSelector = addElementWrapperSelector;
+    this.addElementActionFunction = addElementActionFunction;
     this.addVisibilityFunction = addVisibilityFunction;
 
     this.canDelete = canDelete;
@@ -152,6 +156,7 @@ class DjangoFormset {
     this.deleteVisibilityFunction = deleteVisibilityFunction;
 
     this.canOrder = canOrder;
+    this.showOrderElement = showOrderElement;
     this.orderElementBeforeSelector = orderElementBeforeSelector;
     this.orderElementBeforeDefaultText = orderElementBeforeDefaultText;
     this.orderElementAfterSelector = orderElementAfterSelector;
@@ -442,7 +447,13 @@ class DjangoFormset {
       this.fireBeforeAdd({
         newElement: form
       });
-      this.onAddingElement();
+      if (this.addElementActionFunction) {
+        this.addElementActionFunction(
+          this.getIndex(this.getVisibleForms(), form)
+        );
+      } else {
+        this.onAddingElement();
+      }
       this.fireAfterAdd({
         newElement: form
       });
@@ -836,12 +847,14 @@ class DjangoFormset {
     this.updateDeleteElement(formElement, index);
 
     if (this.canOrder) {
-      var orderElement = this.getSetupOrderElement();
-      this.setupElementInFormBySelector(
-        formElement,
-        orderElement,
-        this.orderElementWrapperSelector
-      );
+      if (this.showOrderElement) {
+        var orderElement = this.getSetupOrderElement();
+        this.setupElementInFormBySelector(
+          formElement,
+          orderElement,
+          this.orderElementWrapperSelector
+        );
+      }
       this.updateOrderElement(formElement, index);
     }
   }

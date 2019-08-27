@@ -52,7 +52,7 @@ var DjangoFormset = /** @class */ (function () {
      * @param {string} [autoId="id_%s"]
      */
     function DjangoFormset(selector, _a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.prefix, prefix = _c === void 0 ? "form" : _c, _d = _b.addElement, addElement = _d === void 0 ? undefined : _d, _e = _b.addElementDefaultText, addElementDefaultText = _e === void 0 ? "Add" : _e, _f = _b.addElementWrapperSelector, addElementWrapperSelector = _f === void 0 ? ".formset-wrapper-add" : _f, _g = _b.addVisibilityFunction, addVisibilityFunction = _g === void 0 ? undefined : _g, _h = _b.canDelete, canDelete = _h === void 0 ? false : _h, _j = _b.deleteElement, deleteElement = _j === void 0 ? undefined : _j, _k = _b.deleteElementDefaultText, deleteElementDefaultText = _k === void 0 ? "Delete" : _k, _l = _b.deleteElementWrapperSelector, deleteElementWrapperSelector = _l === void 0 ? ".formset-wrapper-delete" : _l, _m = _b.deleteVisibilityFunction, deleteVisibilityFunction = _m === void 0 ? null : _m, _o = _b.canOrder, canOrder = _o === void 0 ? false : _o, _p = _b.orderElement, orderElement = _p === void 0 ? undefined : _p, _q = _b.orderElementBeforeSelector, orderElementBeforeSelector = _q === void 0 ? ".formset-order-before" : _q, _r = _b.orderElementBeforeDefaultText, orderElementBeforeDefaultText = _r === void 0 ? "Before" : _r, _s = _b.orderElementAfterSelector, orderElementAfterSelector = _s === void 0 ? ".formset-order-after" : _s, _t = _b.orderElementAfterDefaultText, orderElementAfterDefaultText = _t === void 0 ? "After" : _t, _u = _b.orderElementWrapperSelector, orderElementWrapperSelector = _u === void 0 ? ".formset-wrapper-order" : _u, _v = _b.autoId, autoId = _v === void 0 ? "id_%s" : _v;
+        var _b = _a === void 0 ? {} : _a, _c = _b.prefix, prefix = _c === void 0 ? "form" : _c, _d = _b.addElement, addElement = _d === void 0 ? undefined : _d, _e = _b.addElementDefaultText, addElementDefaultText = _e === void 0 ? "Add" : _e, _f = _b.addElementWrapperSelector, addElementWrapperSelector = _f === void 0 ? ".formset-wrapper-add" : _f, _g = _b.addElementActionFunction, addElementActionFunction = _g === void 0 ? undefined : _g, _h = _b.addVisibilityFunction, addVisibilityFunction = _h === void 0 ? undefined : _h, _j = _b.canDelete, canDelete = _j === void 0 ? false : _j, _k = _b.deleteElement, deleteElement = _k === void 0 ? undefined : _k, _l = _b.deleteElementDefaultText, deleteElementDefaultText = _l === void 0 ? "Delete" : _l, _m = _b.deleteElementWrapperSelector, deleteElementWrapperSelector = _m === void 0 ? ".formset-wrapper-delete" : _m, _o = _b.deleteVisibilityFunction, deleteVisibilityFunction = _o === void 0 ? null : _o, _p = _b.canOrder, canOrder = _p === void 0 ? false : _p, _q = _b.orderElement, orderElement = _q === void 0 ? undefined : _q, _r = _b.showOrderElement, showOrderElement = _r === void 0 ? true : _r, _s = _b.orderElementBeforeSelector, orderElementBeforeSelector = _s === void 0 ? ".formset-order-before" : _s, _t = _b.orderElementBeforeDefaultText, orderElementBeforeDefaultText = _t === void 0 ? "Before" : _t, _u = _b.orderElementAfterSelector, orderElementAfterSelector = _u === void 0 ? ".formset-order-after" : _u, _v = _b.orderElementAfterDefaultText, orderElementAfterDefaultText = _v === void 0 ? "After" : _v, _w = _b.orderElementWrapperSelector, orderElementWrapperSelector = _w === void 0 ? ".formset-wrapper-order" : _w, _x = _b.autoId, autoId = _x === void 0 ? "id_%s" : _x;
         this.beforeAddDispatcher = new EventDispatcher();
         this.afterAddDispatcher = new EventDispatcher();
         this.beforeDeleteDispatcher = new EventDispatcher();
@@ -63,12 +63,14 @@ var DjangoFormset = /** @class */ (function () {
         this.prefix = prefix;
         this.addElementDefaultText = addElementDefaultText;
         this.addElementWrapperSelector = addElementWrapperSelector;
+        this.addElementActionFunction = addElementActionFunction;
         this.addVisibilityFunction = addVisibilityFunction;
         this.canDelete = canDelete;
         this.deleteElementDefaultText = deleteElementDefaultText;
         this.deleteElementWrapperSelector = deleteElementWrapperSelector;
         this.deleteVisibilityFunction = deleteVisibilityFunction;
         this.canOrder = canOrder;
+        this.showOrderElement = showOrderElement;
         this.orderElementBeforeSelector = orderElementBeforeSelector;
         this.orderElementBeforeDefaultText = orderElementBeforeDefaultText;
         this.orderElementAfterSelector = orderElementAfterSelector;
@@ -314,7 +316,12 @@ var DjangoFormset = /** @class */ (function () {
             _this.fireBeforeAdd({
                 newElement: form
             });
-            _this.onAddingElement();
+            if (_this.addElementActionFunction) {
+                _this.addElementActionFunction(_this.getIndex(_this.getVisibleForms(), form));
+            }
+            else {
+                _this.onAddingElement();
+            }
             _this.fireAfterAdd({
                 newElement: form
             });
@@ -648,8 +655,10 @@ var DjangoFormset = /** @class */ (function () {
         this.setupElementInFormBySelector(formElement, deleteElement, this.deleteElementWrapperSelector);
         this.updateDeleteElement(formElement, index);
         if (this.canOrder) {
-            var orderElement = this.getSetupOrderElement();
-            this.setupElementInFormBySelector(formElement, orderElement, this.orderElementWrapperSelector);
+            if (this.showOrderElement) {
+                var orderElement = this.getSetupOrderElement();
+                this.setupElementInFormBySelector(formElement, orderElement, this.orderElementWrapperSelector);
+            }
             this.updateOrderElement(formElement, index);
         }
     };
