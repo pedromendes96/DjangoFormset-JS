@@ -235,6 +235,17 @@ var DjangoFormset = /** @class */ (function () {
         elementWrapper.append(element);
     };
     /**
+     * Allow to give a id to a existent modelForm
+     * @param index
+     * @param value
+     */
+    DjangoFormset.prototype.addIdToForm = function (index, value) {
+        var hiddenPrimaryKey = document.getElementById("id_videos-" + index + "-id");
+        if (hiddenPrimaryKey) {
+            hiddenPrimaryKey.setAttribute("value", value);
+        }
+    };
+    /**
      * Decrements the number of total forms in the hidden input
      */
     DjangoFormset.prototype.decrementTotalForms = function () {

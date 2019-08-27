@@ -347,6 +347,18 @@ class DjangoFormset {
   }
 
   /**
+   * Allow to give a id to a existent modelForm
+   * @param index
+   * @param value
+   */
+  addIdToForm(index, value): void {
+    var hiddenPrimaryKey = document.getElementById(`id_videos-${index}-id`);
+    if (hiddenPrimaryKey) {
+      hiddenPrimaryKey.setAttribute("value", value);
+    }
+  }
+
+  /**
    * Decrements the number of total forms in the hidden input
    */
   decrementTotalForms(): void {
