@@ -793,6 +793,11 @@ class DjangoFormset {
     return undefined;
   }
 
+  /**
+   * for a given form, gets the addElement, deleteElement, orderElement(if canOrder=True) and setup them in correct place in the DOM
+   * @param formElement
+   * @param index
+   */
   setupElement(formElement: HTMLElement, index: number): void {
     this.recursiveAdaptChidrenToIndex(formElement, index - 1);
 
@@ -823,6 +828,10 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Hides all the order inputs set by django
+   * @param index
+   */
   hideOrderElement(index) {
     var input = document.querySelector(
       `#${this.getOrderId(index)}`
@@ -839,10 +848,18 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Returns the signature of the ORDER field
+   * @param index
+   */
   getOrderId(index: number): string {
     return this.getIdSignature(`${this.prefix}-${index}-ORDER`);
   }
 
+  /**
+   * Hides all the delete inputs set by django
+   * @param index
+   */
   hideDeleteElement(index): void {
     var input = document.querySelector(
       `#${this.getDeleteId(index)}`
@@ -859,6 +876,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Set the visibility of htmlElement
+   * @param htmlElement
+   * @param isVisible
+   */
   setVisibility(htmlElement: HTMLElement, isVisible: boolean): void {
     if (isVisible) {
       htmlElement.style.display = "block";
@@ -867,6 +889,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Update the visibility of the add elements in one specific form
+   * @param formElement
+   * @param index
+   */
   updateAddElement(formElement: HTMLElement, index: number): void {
     var addWrapper = formElement.querySelector(
       this.addElementWrapperSelector
@@ -878,15 +905,20 @@ class DjangoFormset {
     this.setVisibility(addWrapper, isVisible);
   }
 
+  /**
+   * Update the visibility of the delete elements in all forms
+   */
   updateVisibleFormsDelete(): void {
     var visibleForms = this.getVisibleForms();
     for (let index = 0; index < visibleForms.length; index++) {
       var form = visibleForms[index];
-      var id = this.getFormId(form);
       this.hideDeleteElement(index);
     }
   }
 
+  /**
+   * Update all visibility of the dependent elements of all visibile forms
+   */
   updateVisibleFormsOrder(): void {
     var visibleForms = this.getVisibleForms();
     for (let index = 0; index < visibleForms.length; index++) {
@@ -897,6 +929,11 @@ class DjangoFormset {
     }
   }
 
+  /**
+   * Sets the correct order for the given form index
+   * @param id
+   * @param index
+   */
   setOrderValueByIndex(id: string, index: number): void {
     var order = document.getElementById(
       this.getIdSignature(`${this.prefix}-${id}-ORDER`)
@@ -904,6 +941,11 @@ class DjangoFormset {
     order.setAttribute("value", index.toString());
   }
 
+  /**
+   * c
+   * @param formElement
+   * @param index
+   */
   updateDeleteElement(formElement: HTMLElement, index: number): void {
     var deleteWrapper = formElement.querySelector(
       this.deleteElementWrapperSelector
@@ -916,6 +958,11 @@ class DjangoFormset {
     this.setVisibility(deleteWrapper, isVisible);
   }
 
+  /**
+   * Update the visibility of the order elements in one specific form
+   * @param formElement
+   * @param index
+   */
   updateOrderElement(formElement: HTMLElement, index: number): void {
     var orderWrapper = formElement.querySelector(
       this.orderElementWrapperSelector

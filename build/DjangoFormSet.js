@@ -621,6 +621,11 @@ var DjangoFormset = /** @class */ (function () {
         }
         return undefined;
     };
+    /**
+     * for a given form, gets the addElement, deleteElement, orderElement(if canOrder=True) and setup them in correct place in the DOM
+     * @param formElement
+     * @param index
+     */
     DjangoFormset.prototype.setupElement = function (formElement, index) {
         this.recursiveAdaptChidrenToIndex(formElement, index - 1);
         var addElement = this.getSetupAddElement();
@@ -635,6 +640,10 @@ var DjangoFormset = /** @class */ (function () {
             this.updateOrderElement(formElement, index);
         }
     };
+    /**
+     * Hides all the order inputs set by django
+     * @param index
+     */
     DjangoFormset.prototype.hideOrderElement = function (index) {
         var input = document.querySelector("#" + this.getOrderId(index));
         if (input) {
@@ -645,9 +654,17 @@ var DjangoFormset = /** @class */ (function () {
             this.setVisibility(label, false);
         }
     };
+    /**
+     * Returns the signature of the ORDER field
+     * @param index
+     */
     DjangoFormset.prototype.getOrderId = function (index) {
         return this.getIdSignature(this.prefix + "-" + index + "-ORDER");
     };
+    /**
+     * Hides all the delete inputs set by django
+     * @param index
+     */
     DjangoFormset.prototype.hideDeleteElement = function (index) {
         var input = document.querySelector("#" + this.getDeleteId(index));
         if (input) {
@@ -658,6 +675,11 @@ var DjangoFormset = /** @class */ (function () {
             this.setVisibility(label, false);
         }
     };
+    /**
+     * Set the visibility of htmlElement
+     * @param htmlElement
+     * @param isVisible
+     */
     DjangoFormset.prototype.setVisibility = function (htmlElement, isVisible) {
         if (isVisible) {
             htmlElement.style.display = "block";
@@ -666,6 +688,11 @@ var DjangoFormset = /** @class */ (function () {
             htmlElement.style.display = "none";
         }
     };
+    /**
+     * Update the visibility of the add elements in one specific form
+     * @param formElement
+     * @param index
+     */
     DjangoFormset.prototype.updateAddElement = function (formElement, index) {
         var addWrapper = formElement.querySelector(this.addElementWrapperSelector);
         var canAdd = this.getNumberOfMaxForms() > this.getNumberOfVisibleForms();
@@ -673,14 +700,19 @@ var DjangoFormset = /** @class */ (function () {
         var isVisible = canAdd && visibleForms[visibleForms.length - 1] == formElement;
         this.setVisibility(addWrapper, isVisible);
     };
+    /**
+     * Update the visibility of the delete elements in all forms
+     */
     DjangoFormset.prototype.updateVisibleFormsDelete = function () {
         var visibleForms = this.getVisibleForms();
         for (var index = 0; index < visibleForms.length; index++) {
             var form = visibleForms[index];
-            var id = this.getFormId(form);
             this.hideDeleteElement(index);
         }
     };
+    /**
+     * Update all visibility of the dependent elements of all visibile forms
+     */
     DjangoFormset.prototype.updateVisibleFormsOrder = function () {
         var visibleForms = this.getVisibleForms();
         for (var index = 0; index < visibleForms.length; index++) {
@@ -690,10 +722,20 @@ var DjangoFormset = /** @class */ (function () {
             this.hideOrderElement(index);
         }
     };
+    /**
+     * Sets the correct order for the given form index
+     * @param id
+     * @param index
+     */
     DjangoFormset.prototype.setOrderValueByIndex = function (id, index) {
         var order = document.getElementById(this.getIdSignature(this.prefix + "-" + id + "-ORDER"));
         order.setAttribute("value", index.toString());
     };
+    /**
+     * c
+     * @param formElement
+     * @param index
+     */
     DjangoFormset.prototype.updateDeleteElement = function (formElement, index) {
         var deleteWrapper = formElement.querySelector(this.deleteElementWrapperSelector);
         var numberOfMinForms = this.getNumberOfMinForms();
@@ -701,6 +743,11 @@ var DjangoFormset = /** @class */ (function () {
         var isVisible = numberOfTotalVisibleForms > numberOfMinForms;
         this.setVisibility(deleteWrapper, isVisible);
     };
+    /**
+     * Update the visibility of the order elements in one specific form
+     * @param formElement
+     * @param index
+     */
     DjangoFormset.prototype.updateOrderElement = function (formElement, index) {
         var orderWrapper = formElement.querySelector(this.orderElementWrapperSelector);
         var visibleForms = this.getVisibleForms();
