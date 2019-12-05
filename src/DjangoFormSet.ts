@@ -41,10 +41,17 @@ interface AfterDeleteEvent {
   deletedElement: HTMLElement;
 }
 
-interface BeforeOrderEvent {
+interface BeforeMoveBackEvent {
   orderedElement: HTMLElement;
 }
-interface AfterOrderEvent {
+interface AfterMoveBackEvent {
+  orderedElement: HTMLElement;
+}
+
+interface BeforeMoveFowardEvent {
+  orderedElement: HTMLElement;
+}
+interface AfterMoveFowardEvent {
   orderedElement: HTMLElement;
 }
 
@@ -90,9 +97,13 @@ class DjangoFormset {
 
   private afterDeleteDispatcher = new EventDispatcher<AfterDeleteEvent>();
 
-  private beforeOrderDispatcher = new EventDispatcher<BeforeOrderEvent>();
+  private beforeMoveBackDispatcher = new EventDispatcher<BeforeMoveBackEvent>();
 
-  private afterOrderDispatcher = new EventDispatcher<AfterOrderEvent>();
+  private afterMoveBackDispatcher = new EventDispatcher<AfterMoveBackEvent>();
+
+  private beforeMoveFowardDispatcher = new EventDispatcher<BeforeMoveFowardEvent>();
+
+  private afterMoveFowardDispatcher = new EventDispatcher<AfterMoveFowardEvent>();
 
   private autoId: string;
 
@@ -252,36 +263,32 @@ class DjangoFormset {
     this.afterDeleteDispatcher.fire(event);
   }
 
-  /**
-   * Regist a handle to trigger in beforeOrderEvent
-   * @param handler Handle that will be executed in beforeOrderEvent
-   */
-  public onBeforeOrder(handler: Handler<BeforeOrderEvent>): void {
-    this.beforeOrderDispatcher.register(handler);
+  onBeforeMoveBack(handler: Handler<BeforeMoveBackEvent>){
+    this.beforeMoveBackDispatcher.register(handler);
+  }
+  fireBeforeMoveBack(event: BeforeMoveBackEvent){
+    this.beforeMoveBackDispatcher.fire(event);
   }
 
-  /**
-   * Trigger the beforeOrderEvent
-   * @param event Event that will be fired
-   */
-  private fireBeforeOrder(event: BeforeOrderEvent): void {
-    this.beforeOrderDispatcher.fire(event);
+  onAfterMoveBack(handler: Handler<AfterMoveBackEvent>){
+    this.afterMoveBackDispatcher.register(handler);
+  }
+  fireAfterMoveBack(event: AfterMoveBackEvent){
+    this.afterMoveBackDispatcher.fire(event);
   }
 
-  /**
-   * Regist a handle to trigger in afterOrderEvent
-   * @param handler Handle that will be executed in afterOrderEvent
-   */
-  public onAfterOrder(handler: Handler<AfterOrderEvent>): void {
-    this.afterOrderDispatcher.register(handler);
+  onBeforeMoveFoward(handler: Handler<BeforeMoveFowardEvent>){
+    this.beforeMoveFowardDispatcher.register(handler);
+  }
+  fireBeforeMoveFoward(event: BeforeMoveFowardEvent){
+    this.beforeMoveFowardDispatcher.fire(event);
   }
 
-  /**
-   * Trigger the afterOrderEvent
-   * @param event Event that will be fired
-   */
-  private fireAfterOrder(event: AfterOrderEvent): void {
-    this.afterOrderDispatcher.fire(event);
+  onAfterMoveFoward(handler: Handler<AfterMoveFowardEvent>){
+    this.afterMoveFowardDispatcher.register(handler);
+  }
+  fireAfterMoveFoward(event: AfterMoveFowardEvent){
+    this.afterMoveFowardDispatcher.fire(event);
   }
 
   /**
@@ -579,11 +586,11 @@ class DjangoFormset {
     );
     beforeElement.addEventListener("click", () => {
       var form = this.getParentForm(clonedElement);
-      this.fireBeforeOrder({
+      this.fireBeforeMoveBack({
         orderedElement: form
       });
       this.onMovingBefore(form);
-      this.fireAfterOrder({
+      this.fireAfterMoveBack({
         orderedElement: form
       });
     });
@@ -593,11 +600,11 @@ class DjangoFormset {
     );
     afterElement.addEventListener("click", () => {
       var form = this.getParentForm(clonedElement);
-      this.fireBeforeOrder({
+      this.fireBeforeMoveFoward({
         orderedElement: form
       });
       this.onMovingAfter(form);
-      this.fireAfterOrder({
+      this.fireAfterMoveFoward({
         orderedElement: form
       });
     });

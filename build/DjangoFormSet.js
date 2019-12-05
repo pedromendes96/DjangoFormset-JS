@@ -57,8 +57,10 @@ var DjangoFormset = /** @class */ (function () {
         this.afterAddDispatcher = new EventDispatcher();
         this.beforeDeleteDispatcher = new EventDispatcher();
         this.afterDeleteDispatcher = new EventDispatcher();
-        this.beforeOrderDispatcher = new EventDispatcher();
-        this.afterOrderDispatcher = new EventDispatcher();
+        this.beforeMoveBackDispatcher = new EventDispatcher();
+        this.afterMoveBackDispatcher = new EventDispatcher();
+        this.beforeMoveFowardDispatcher = new EventDispatcher();
+        this.afterMoveFowardDispatcher = new EventDispatcher();
         this.selector = selector;
         this.prefix = prefix;
         this.addElementDefaultText = addElementDefaultText;
@@ -148,33 +150,29 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.fireAfterDelete = function (event) {
         this.afterDeleteDispatcher.fire(event);
     };
-    /**
-     * Regist a handle to trigger in beforeOrderEvent
-     * @param handler Handle that will be executed in beforeOrderEvent
-     */
-    DjangoFormset.prototype.onBeforeOrder = function (handler) {
-        this.beforeOrderDispatcher.register(handler);
+    DjangoFormset.prototype.onBeforeMoveBack = function (handler) {
+        this.beforeMoveBackDispatcher.register(handler);
     };
-    /**
-     * Trigger the beforeOrderEvent
-     * @param event Event that will be fired
-     */
-    DjangoFormset.prototype.fireBeforeOrder = function (event) {
-        this.beforeOrderDispatcher.fire(event);
+    DjangoFormset.prototype.fireBeforeMoveBack = function (event) {
+        this.beforeMoveBackDispatcher.fire(event);
     };
-    /**
-     * Regist a handle to trigger in afterOrderEvent
-     * @param handler Handle that will be executed in afterOrderEvent
-     */
-    DjangoFormset.prototype.onAfterOrder = function (handler) {
-        this.afterOrderDispatcher.register(handler);
+    DjangoFormset.prototype.onAfterMoveBack = function (handler) {
+        this.afterMoveBackDispatcher.register(handler);
     };
-    /**
-     * Trigger the afterOrderEvent
-     * @param event Event that will be fired
-     */
-    DjangoFormset.prototype.fireAfterOrder = function (event) {
-        this.afterOrderDispatcher.fire(event);
+    DjangoFormset.prototype.fireAfterMoveBack = function (event) {
+        this.afterMoveBackDispatcher.fire(event);
+    };
+    DjangoFormset.prototype.onBeforeMoveFoward = function (handler) {
+        this.beforeMoveFowardDispatcher.register(handler);
+    };
+    DjangoFormset.prototype.fireBeforeMoveFoward = function (event) {
+        this.beforeMoveFowardDispatcher.fire(event);
+    };
+    DjangoFormset.prototype.onAfterMoveFoward = function (handler) {
+        this.afterMoveFowardDispatcher.register(handler);
+    };
+    DjangoFormset.prototype.fireAfterMoveFoward = function (event) {
+        this.afterMoveFowardDispatcher.fire(event);
     };
     /**
      * Gets the correct id of the given autoId
@@ -433,22 +431,22 @@ var DjangoFormset = /** @class */ (function () {
         var beforeElement = clonedElement.querySelector(this.orderElementBeforeSelector);
         beforeElement.addEventListener("click", function () {
             var form = _this.getParentForm(clonedElement);
-            _this.fireBeforeOrder({
+            _this.fireBeforeMoveBack({
                 orderedElement: form
             });
             _this.onMovingBefore(form);
-            _this.fireAfterOrder({
+            _this.fireAfterMoveBack({
                 orderedElement: form
             });
         });
         var afterElement = clonedElement.querySelector(this.orderElementAfterSelector);
         afterElement.addEventListener("click", function () {
             var form = _this.getParentForm(clonedElement);
-            _this.fireBeforeOrder({
+            _this.fireBeforeMoveFoward({
                 orderedElement: form
             });
             _this.onMovingAfter(form);
-            _this.fireAfterOrder({
+            _this.fireAfterMoveFoward({
                 orderedElement: form
             });
         });
