@@ -275,7 +275,7 @@ var DjangoFormset = /** @class */ (function () {
         var visibleForms = [];
         for (var index = 0; index < forms.length; index++) {
             var element = forms[index];
-            if (element.offsetWidth > 0 && element.offsetHeight > 0) {
+            if (element.style.display != "none") {
                 visibleForms.push(element);
             }
         }
