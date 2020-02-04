@@ -55,6 +55,10 @@ interface AfterMoveFowardEvent {
   orderedElement: HTMLElement;
 }
 
+interface ResetInitialFormEvent {
+  form : HTMLElement
+}
+
 /**
  * Class representing the formset
  */
@@ -104,6 +108,8 @@ class DjangoFormset {
   private beforeMoveFowardDispatcher = new EventDispatcher<BeforeMoveFowardEvent>();
 
   private afterMoveFowardDispatcher = new EventDispatcher<AfterMoveFowardEvent>();
+
+  private resetInitialFormDispatcher = new EventDispatcher<ResetInitialFormEvent>();
 
   private autoId: string;
 
@@ -189,14 +195,6 @@ class DjangoFormset {
     this.maxFormsElement = document.getElementById(
       this.getIdSignature(`${this.prefix}-MAX_NUM_FORMS`)
     );
-
-    var forms = this.getForms();
-    if (forms.length) {
-      var formReference = forms[0];
-      this.formTemplate = this.resetForm(formReference);
-    } else {
-      throw "Must have atleast one form to create a template!";
-    }
   }
 
   /**
@@ -263,6 +261,14 @@ class DjangoFormset {
     this.afterDeleteDispatcher.fire(event);
   }
 
+  /**
+   * Trigger the ResetInitialFormEvent
+   * @param event Event that will be fired
+   */
+  private fireResetInitialForm(event: ResetInitialFormEvent): void {
+    this.resetInitialFormDispatcher.fire(event);
+  }
+
   onBeforeMoveBack(handler: Handler<BeforeMoveBackEvent>){
     this.beforeMoveBackDispatcher.register(handler);
   }
@@ -273,6 +279,7 @@ class DjangoFormset {
   onAfterMoveBack(handler: Handler<AfterMoveBackEvent>){
     this.afterMoveBackDispatcher.register(handler);
   }
+
   fireAfterMoveBack(event: AfterMoveBackEvent){
     this.afterMoveBackDispatcher.fire(event);
   }
@@ -287,8 +294,17 @@ class DjangoFormset {
   onAfterMoveFoward(handler: Handler<AfterMoveFowardEvent>){
     this.afterMoveFowardDispatcher.register(handler);
   }
+
   fireAfterMoveFoward(event: AfterMoveFowardEvent){
     this.afterMoveFowardDispatcher.fire(event);
+  }
+
+  onResetInitialForm(handler: Handler<ResetInitialFormEvent>){
+    this.resetInitialFormDispatcher.register(handler);
+  }
+
+  resetInitialForm(event: ResetInitialFormEvent){
+    this.resetInitialFormDispatcher.fire(event);
   }
 
   /**
@@ -693,6 +709,17 @@ class DjangoFormset {
    */
   setup(): void {
     var forms = this.getForms();
+
+    if (forms.length) {
+      var formReference = forms[0];
+      this.formTemplate = this.resetForm(formReference);
+      this.fireResetInitialForm({
+        form: this.formTemplate
+      });
+    } else {
+      throw "Must have atleast one form to create a template!";
+    }
+
     for (let index = 0; index < forms.length; index++) {
       const element = forms[index];
       this.setupElement(element, index + 1);

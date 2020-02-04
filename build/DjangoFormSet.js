@@ -61,6 +61,7 @@ var DjangoFormset = /** @class */ (function () {
         this.afterMoveBackDispatcher = new EventDispatcher();
         this.beforeMoveFowardDispatcher = new EventDispatcher();
         this.afterMoveFowardDispatcher = new EventDispatcher();
+        this.resetInitialFormDispatcher = new EventDispatcher();
         this.selector = selector;
         this.prefix = prefix;
         this.addElementDefaultText = addElementDefaultText;
@@ -85,14 +86,6 @@ var DjangoFormset = /** @class */ (function () {
         this.totalFormsElement = document.getElementById(this.getIdSignature(this.prefix + "-TOTAL_FORMS"));
         this.minFormsElement = document.getElementById(this.getIdSignature(this.prefix + "-MIN_NUM_FORMS"));
         this.maxFormsElement = document.getElementById(this.getIdSignature(this.prefix + "-MAX_NUM_FORMS"));
-        var forms = this.getForms();
-        if (forms.length) {
-            var formReference = forms[0];
-            this.formTemplate = this.resetForm(formReference);
-        }
-        else {
-            throw "Must have atleast one form to create a template!";
-        }
     }
     /**
      * Regist a handle to trigger in beforeAddEvent
@@ -150,6 +143,13 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.fireAfterDelete = function (event) {
         this.afterDeleteDispatcher.fire(event);
     };
+    /**
+     * Trigger the ResetInitialFormEvent
+     * @param event Event that will be fired
+     */
+    DjangoFormset.prototype.fireResetInitialForm = function (event) {
+        this.resetInitialFormDispatcher.fire(event);
+    };
     DjangoFormset.prototype.onBeforeMoveBack = function (handler) {
         this.beforeMoveBackDispatcher.register(handler);
     };
@@ -173,6 +173,12 @@ var DjangoFormset = /** @class */ (function () {
     };
     DjangoFormset.prototype.fireAfterMoveFoward = function (event) {
         this.afterMoveFowardDispatcher.fire(event);
+    };
+    DjangoFormset.prototype.onResetInitialForm = function (handler) {
+        this.resetInitialFormDispatcher.register(handler);
+    };
+    DjangoFormset.prototype.resetInitialForm = function (event) {
+        this.resetInitialFormDispatcher.fire(event);
     };
     /**
      * Gets the correct id of the given autoId
@@ -524,6 +530,16 @@ var DjangoFormset = /** @class */ (function () {
      */
     DjangoFormset.prototype.setup = function () {
         var forms = this.getForms();
+        if (forms.length) {
+            var formReference = forms[0];
+            this.formTemplate = this.resetForm(formReference);
+            this.fireResetInitialForm({
+                form: this.formTemplate
+            });
+        }
+        else {
+            throw "Must have atleast one form to create a template!";
+        }
         for (var index = 0; index < forms.length; index++) {
             var element = forms[index];
             this.setupElement(element, index + 1);
