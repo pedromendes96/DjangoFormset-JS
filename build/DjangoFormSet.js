@@ -775,7 +775,7 @@ var DjangoFormset = /** @class */ (function () {
         var visibleForms = this.getVisibleForms();
         var isVisible;
         if (this.addVisibilityFunction) {
-            isVisible = this.addVisibilityFunction(formElement, index);
+            isVisible = this.addVisibilityFunction(this, formElement, index);
         }
         else {
             isVisible =
@@ -824,7 +824,7 @@ var DjangoFormset = /** @class */ (function () {
         var numberOfTotalVisibleForms = this.getNumberOfVisibleForms();
         var isVisible;
         if (this.deleteVisibilityFunction) {
-            isVisible = this.deleteVisibilityFunction(formElement, index);
+            isVisible = this.deleteVisibilityFunction(this, formElement, index);
         }
         else {
             isVisible = numberOfTotalVisibleForms > numberOfMinForms;
