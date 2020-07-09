@@ -52,7 +52,7 @@ var DjangoFormset = /** @class */ (function () {
      * @param {string} [autoId="id_%s"]
      */
     function DjangoFormset(selector, _a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.prefix, prefix = _c === void 0 ? "form" : _c, _d = _b.addElement, addElement = _d === void 0 ? undefined : _d, _e = _b.addElementDefaultText, addElementDefaultText = _e === void 0 ? "Add" : _e, _f = _b.addElementWrapperSelector, addElementWrapperSelector = _f === void 0 ? ".formset-wrapper-add" : _f, _g = _b.addElementActionFunction, addElementActionFunction = _g === void 0 ? undefined : _g, _h = _b.addVisibilityFunction, addVisibilityFunction = _h === void 0 ? undefined : _h, _j = _b.canDelete, canDelete = _j === void 0 ? false : _j, _k = _b.deleteElement, deleteElement = _k === void 0 ? undefined : _k, _l = _b.deleteElementDefaultText, deleteElementDefaultText = _l === void 0 ? "Delete" : _l, _m = _b.deleteElementWrapperSelector, deleteElementWrapperSelector = _m === void 0 ? ".formset-wrapper-delete" : _m, _o = _b.deleteVisibilityFunction, deleteVisibilityFunction = _o === void 0 ? null : _o, _p = _b.canOrder, canOrder = _p === void 0 ? false : _p, _q = _b.orderElement, orderElement = _q === void 0 ? undefined : _q, _r = _b.showOrderElement, showOrderElement = _r === void 0 ? true : _r, _s = _b.orderElementBeforeSelector, orderElementBeforeSelector = _s === void 0 ? ".formset-order-before" : _s, _t = _b.orderElementBeforeDefaultText, orderElementBeforeDefaultText = _t === void 0 ? "Before" : _t, _u = _b.orderElementAfterSelector, orderElementAfterSelector = _u === void 0 ? ".formset-order-after" : _u, _v = _b.orderElementAfterDefaultText, orderElementAfterDefaultText = _v === void 0 ? "After" : _v, _w = _b.orderElementWrapperSelector, orderElementWrapperSelector = _w === void 0 ? ".formset-wrapper-order" : _w, _x = _b.autoId, autoId = _x === void 0 ? "id_%s" : _x;
+        var _b = _a === void 0 ? {} : _a, _c = _b.prefix, prefix = _c === void 0 ? "form" : _c, _d = _b.addElement, addElement = _d === void 0 ? undefined : _d, _e = _b.addElementDefaultText, addElementDefaultText = _e === void 0 ? "Add" : _e, _f = _b.addElementWrapperSelector, addElementWrapperSelector = _f === void 0 ? ".formset-wrapper-add" : _f, _g = _b.addElementActionFunction, addElementActionFunction = _g === void 0 ? undefined : _g, _h = _b.addVisibilityFunction, addVisibilityFunction = _h === void 0 ? undefined : _h, _j = _b.canDelete, canDelete = _j === void 0 ? false : _j, _k = _b.deleteElement, deleteElement = _k === void 0 ? undefined : _k, _l = _b.deleteElementDefaultText, deleteElementDefaultText = _l === void 0 ? "Delete" : _l, _m = _b.deleteElementWrapperSelector, deleteElementWrapperSelector = _m === void 0 ? ".formset-wrapper-delete" : _m, _o = _b.deleteVisibilityFunction, deleteVisibilityFunction = _o === void 0 ? null : _o, _p = _b.excludeRecursiveClasses, excludeRecursiveClasses = _p === void 0 ? [] : _p, _q = _b.canOrder, canOrder = _q === void 0 ? false : _q, _r = _b.orderElement, orderElement = _r === void 0 ? undefined : _r, _s = _b.showOrderElement, showOrderElement = _s === void 0 ? true : _s, _t = _b.orderElementBeforeSelector, orderElementBeforeSelector = _t === void 0 ? ".formset-order-before" : _t, _u = _b.orderElementBeforeDefaultText, orderElementBeforeDefaultText = _u === void 0 ? "Before" : _u, _v = _b.orderElementAfterSelector, orderElementAfterSelector = _v === void 0 ? ".formset-order-after" : _v, _w = _b.orderElementAfterDefaultText, orderElementAfterDefaultText = _w === void 0 ? "After" : _w, _x = _b.orderElementWrapperSelector, orderElementWrapperSelector = _x === void 0 ? ".formset-wrapper-order" : _x, _y = _b.autoId, autoId = _y === void 0 ? "id_%s" : _y;
         this.beforeAddDispatcher = new EventDispatcher();
         this.afterAddDispatcher = new EventDispatcher();
         this.beforeDeleteDispatcher = new EventDispatcher();
@@ -72,6 +72,7 @@ var DjangoFormset = /** @class */ (function () {
         this.deleteElementDefaultText = deleteElementDefaultText;
         this.deleteElementWrapperSelector = deleteElementWrapperSelector;
         this.deleteVisibilityFunction = deleteVisibilityFunction;
+        this.excludeRecursiveClasses = excludeRecursiveClasses;
         this.canOrder = canOrder;
         this.showOrderElement = showOrderElement;
         this.orderElementBeforeSelector = orderElementBeforeSelector;
@@ -186,7 +187,10 @@ var DjangoFormset = /** @class */ (function () {
      * @returns Return the correct id for the desired element
      */
     DjangoFormset.prototype.getIdSignature = function (id) {
-        return this.autoId.replace("%s", id);
+        console.log("Calling getIdSignature...");
+        var idSignature = this.autoId.replace("%s", id);
+        console.log("idSignature: ", idSignature);
+        return idSignature;
     };
     /**
      *  Return the integer value of the element attribute "value"
@@ -589,9 +593,21 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.recursiveAdaptChidrenToIndex = function (element, index) {
         var children = element.children;
         for (var i = 0; i < children.length; i++) {
-            var element_1 = children[i];
-            this.changeElementAttributesToIndex(element_1, index);
-            this.recursiveAdaptChidrenToIndex(element_1, index);
+            var child = children[i];
+            var canProcede = true;
+            for (var index_1 = 0; index_1 < this.excludeRecursiveClasses.length; index_1++) {
+                console.log("child.classList: ", child.classList);
+                if (child.classList.contains(this.excludeRecursiveClasses[index_1])) {
+                    console.log("Can't procede because this child contains the class: ", this.excludeRecursiveClasses[index_1]);
+                    canProcede = false;
+                    break;
+                }
+            }
+            if (canProcede) {
+                console.log("Checking recursive elements in the child", child);
+                this.changeElementAttributesToIndex(child, index);
+                this.recursiveAdaptChidrenToIndex(child, index);
+            }
         }
     };
     /**
@@ -602,7 +618,9 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.changeElementAttributesToIndex = function (element, index) {
         var name = element.getAttribute("name");
         if (name) {
-            element.setAttribute("name", this.getReplacedNamePattern(name, index));
+            var replaced_name = this.getReplacedNamePattern(name, index);
+            console.log("Changing the current name -> " + name + " to the new name with the index -> " + replaced_name);
+            element.setAttribute("name", replaced_name);
         }
         var forAttribute = element.getAttribute("for");
         if (forAttribute) {
@@ -621,8 +639,13 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.getReplacedNamePattern = function (name, index) {
         var namePattern = new RegExp(this.prefix + "-\\d+-.+");
         if (namePattern.exec(name)) {
-            var splitName = name.split("-");
-            return splitName[0] + "-" + index + "-" + splitName[2];
+            var nameWithoutPrefix = name.replace(this.prefix, "");
+            if (nameWithoutPrefix[0] == "-") {
+                nameWithoutPrefix = nameWithoutPrefix.substr(1);
+            }
+            var splitName = nameWithoutPrefix.split("-").filter(Boolean);
+            var restOfNamePart = splitName.slice(1);
+            return this.prefix + "-" + index + "-" + restOfNamePart.join("-");
         }
         else {
             return name;
@@ -636,8 +659,12 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.getReplacedIdPattern = function (id, index) {
         var idPattern = new RegExp(this.getIdSignature(this.prefix + "-\\d+-.+"));
         if (idPattern.exec(id)) {
-            var splitId = id.split("-");
-            return this.getIdSignature(splitId[0].replace(this.autoId.replace("%s", ""), "") + "-" + index + "-" + splitId[2]);
+            var autoIdWithoutStringPlaceholder = this.autoId.replace("%s", "");
+            var idPrefix = autoIdWithoutStringPlaceholder + this.prefix;
+            var idWithoutPrefix = id.replace(idPrefix, "");
+            var splitId = idWithoutPrefix.split("-").filter(Boolean);
+            var restOfIdPart = splitId.slice(1);
+            return idPrefix + "-" + index + "-" + restOfIdPart.join("-");
         }
         else {
             return id;
@@ -653,14 +680,14 @@ var DjangoFormset = /** @class */ (function () {
     DjangoFormset.prototype.recursiveFindFirstId = function (element) {
         var children = element.children;
         for (var i = 0; i < children.length; i++) {
-            var element_2 = children[i];
-            var id = element_2.getAttribute("id");
+            var element_1 = children[i];
+            var id = element_1.getAttribute("id");
             var idPattern = new RegExp(this.getIdSignature(this.prefix + "-\\d+-.+"));
             if (idPattern.exec(id)) {
                 return id.split("-")[1];
             }
             else {
-                var result = this.recursiveFindFirstId(element_2);
+                var result = this.recursiveFindFirstId(element_1);
                 if (result) {
                     return result;
                 }

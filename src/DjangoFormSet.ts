@@ -82,6 +82,8 @@ class DjangoFormset {
   private deleteElementWrapperSelector: string;
   private deleteVisibilityFunction: Function;
 
+  private excludeRecursiveClasses : Array<string>;
+
   private canOrder: boolean;
   private orderElement: HTMLElement;
   private showOrderElement: boolean;
@@ -149,6 +151,8 @@ class DjangoFormset {
       deleteElementWrapperSelector = ".formset-wrapper-delete",
       deleteVisibilityFunction = null,
 
+      excludeRecursiveClasses = [],
+
       canOrder = false,
       orderElement = undefined,
       showOrderElement = true,
@@ -171,6 +175,8 @@ class DjangoFormset {
     this.deleteElementDefaultText = deleteElementDefaultText;
     this.deleteElementWrapperSelector = deleteElementWrapperSelector;
     this.deleteVisibilityFunction = deleteVisibilityFunction;
+
+    this.excludeRecursiveClasses = excludeRecursiveClasses;
 
     this.canOrder = canOrder;
     this.showOrderElement = showOrderElement;
@@ -313,7 +319,10 @@ class DjangoFormset {
    * @returns Return the correct id for the desired element
    */
   getIdSignature(id: string): string {
-    return this.autoId.replace("%s", id);
+    console.log("Calling getIdSignature...");
+    var idSignature = this.autoId.replace("%s", id);
+    console.log("idSignature: ",idSignature);
+    return idSignature;
   }
 
   /**
@@ -777,10 +786,26 @@ class DjangoFormset {
    */
   recursiveAdaptChidrenToIndex(element: HTMLElement, index: number): void {
     var children = element.children;
+
     for (let i = 0; i < children.length; i++) {
-      const element = children[i] as HTMLElement;
-      this.changeElementAttributesToIndex(element, index);
-      this.recursiveAdaptChidrenToIndex(element, index);
+      const child = children[i] as HTMLElement;
+
+      var canProcede = true;
+
+      for (let index = 0; index < this.excludeRecursiveClasses.length; index++) {
+        console.log("child.classList: ", child.classList);
+        if( child.classList.contains(this.excludeRecursiveClasses[index]) ){
+          console.log("Can't procede because this child contains the class: ", this.excludeRecursiveClasses[index]);
+          canProcede = false;
+          break;
+        }
+      }
+
+      if(canProcede){
+        console.log("Checking recursive elements in the child", child);
+        this.changeElementAttributesToIndex(child, index);
+        this.recursiveAdaptChidrenToIndex(child, index);
+      }
     }
   }
 
@@ -792,7 +817,9 @@ class DjangoFormset {
   changeElementAttributesToIndex(element: HTMLElement, index: number): void {
     var name = element.getAttribute("name");
     if (name) {
-      element.setAttribute("name", this.getReplacedNamePattern(name, index));
+      var replaced_name = this.getReplacedNamePattern(name, index);
+      console.log("Changing the current name -> " + name + " to the new name with the index -> " + replaced_name);
+      element.setAttribute("name", replaced_name);
     }
 
     var forAttribute = element.getAttribute("for");
@@ -816,9 +843,15 @@ class DjangoFormset {
    */
   getReplacedNamePattern(name: string, index: number): string {
     var namePattern = new RegExp(`${this.prefix}-\\d+-.+`);
+
     if (namePattern.exec(name)) {
-      var splitName = name.split("-");
-      return `${splitName[0]}-${index}-${splitName[2]}`;
+      var nameWithoutPrefix = name.replace(this.prefix, "");
+      if(nameWithoutPrefix[0] == "-"){
+        nameWithoutPrefix = nameWithoutPrefix.substr(1);
+      }
+      var splitName = nameWithoutPrefix.split("-").filter(Boolean);
+      var restOfNamePart = splitName.slice(1)
+      return `${this.prefix}-${index}-${restOfNamePart.join("-")}`;
     } else {
       return name;
     }
@@ -832,12 +865,14 @@ class DjangoFormset {
   getReplacedIdPattern(id, index): string {
     var idPattern = new RegExp(this.getIdSignature(`${this.prefix}-\\d+-.+`));
     if (idPattern.exec(id)) {
-      var splitId = id.split("-");
-      return this.getIdSignature(
-        `${splitId[0].replace(this.autoId.replace("%s", ""), "")}-${index}-${
-          splitId[2]
-        }`
-      );
+      var autoIdWithoutStringPlaceholder = this.autoId.replace("%s", "");
+      var idPrefix = autoIdWithoutStringPlaceholder + this.prefix;
+
+      var idWithoutPrefix = id.replace(idPrefix, "");
+      var splitId = idWithoutPrefix.split("-").filter(Boolean);
+      var restOfIdPart = splitId.slice(1)
+
+      return `${idPrefix}-${index}-${restOfIdPart.join("-")}`;
     } else {
       return id;
     }
