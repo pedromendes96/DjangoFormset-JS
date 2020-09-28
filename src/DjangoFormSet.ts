@@ -557,6 +557,7 @@ class DjangoFormset {
       deletingElementCheckBox.checked = true;
     } else {
       formElement.remove();
+      this.decrementTotalForms();
     }
     this.update();
   }

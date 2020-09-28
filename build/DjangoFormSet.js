@@ -397,6 +397,7 @@ var DjangoFormset = /** @class */ (function () {
         }
         else {
             formElement.remove();
+            this.decrementTotalForms();
         }
         this.update();
     };
